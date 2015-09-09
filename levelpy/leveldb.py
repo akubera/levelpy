@@ -12,6 +12,7 @@ class LevelDB:
 
     _db = None
     leveldb = None
+    path = None
 
     def __init__(self,
                  db,
@@ -23,7 +24,8 @@ class LevelDB:
             self.leveldb = database_package
 
         if isinstance(db, str):
-            self._db = self.leveldb.LevelDB(db, **kwargs)
+            self.path = db
+            db = self._db = self.leveldb.LevelDB(self.path, **kwargs)
         else:
             self._db = db
 
@@ -77,10 +79,10 @@ class LevelDB:
             yield v
 
     def has_key(self, key):
-        return key in self
+        return key in iter(self.keys())
 
     def destroy_db(self):
-        self.leveldb.DestroyDB(self._db.path)
+        self.leveldb.DestroyDB(self.path)
 
     def stats(self):
         return self.GetStats()

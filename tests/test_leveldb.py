@@ -49,6 +49,11 @@ def test_constructor(db, db_path, mock_LevelDB, mock_leveldb_backend):
     mock_LevelDB.LevelDB.assert_called_with(db_path)
 
 
+def test_constructor_string_backend():
+    with pytest.raises(ImportError):
+        levelpy.leveldb.LevelDB('.', 'nopkg')
+
+
 def test_getitem(db, mock_leveldb_backend):
     db['a']
     mock_leveldb_backend.Get.assert_called_with('a')
@@ -106,8 +111,43 @@ def test_keys(db):
     # mock_leveldb_backend.__contains__.assert_called_with('a')
 
 
+def test_values(db, mock_leveldb_backend):
+    mock_leveldb_backend.RangeIter.return_value = [(True, True)]
+    for x in db.values():
+        assert x
+    # mock_leveldb_backend.__contains__.assert_called_with('a')
+
+
+def test_has_key(db):
+    has_a = db.has_key('a')
+    assert not has_a
+
+
 def test_copy(db, mock_leveldb_backend):
     from copy import copy
     carbon = copy(db)
     assert carbon._db is mock_leveldb_backend
     # mock_leveldb_backend.__contains__.assert_called_with('a')
+
+def test_write_batch(db):
+    with db.write_batch() as ctx:
+        assert ctx is not None
+
+def test_batch(db):
+    with db.batch() as ctx:
+        assert ctx is not None
+
+
+def test_destroy_db(db, mock_LevelDB):
+    db.destroy_db()
+    assert mock_LevelDB.DestroyDB.called
+
+
+def test_stats(db, mock_leveldb_backend):
+    db.stats()
+    assert mock_leveldb_backend.GetStats.called
+
+
+def test_create_snapshot(db, mock_leveldb_backend):
+    db.create_snapshot()
+    assert mock_leveldb_backend.CreateSnapshot.called
