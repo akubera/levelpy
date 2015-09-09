@@ -10,6 +10,9 @@ class LevelDB:
     LevelDB interface
     """
 
+    _db = None
+    leveldb = None
+
     def __init__(self,
                  db,
                  database_package='leveldb',

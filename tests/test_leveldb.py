@@ -1,4 +1,6 @@
-
+#
+# tests/test_leveldb.py
+#
 
 import pytest
 from unittest import mock
@@ -27,7 +29,6 @@ def mock_LevelDB(mock_leveldb_backend, recwarn):
         module = mock.MagicMock()
         warn("Error importing leveldb: "
              "Some tests may pass when they shouldn't")
-
     module.LevelDB.return_value = mock_leveldb_backend
     return module
 
