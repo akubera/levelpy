@@ -99,6 +99,12 @@ def test_items(db):
     # mock_leveldb_backend.__contains__.assert_called_with('a')
 
 
+def test_keys(db):
+    for x in db.keys():
+        assert x
+    # mock_leveldb_backend.__contains__.assert_called_with('a')
+
+
 def test_copy(db, mock_leveldb_backend):
     from copy import copy
     carbon = copy(db)

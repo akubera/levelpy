@@ -37,15 +37,15 @@ class LevelDB:
         if isinstance(key, slice):
             if key.step is not None:
                 raise ValueError("Step is not available for levelpy slices")
-            return self._db.RangeIter(key_from=key.start, key_to=key.stop)
+            return self.RangeIter(key_from=key.start, key_to=key.stop)
         else:
-            return self._db.Get(key)
+            return self.Get(key)
 
     def __setitem__(self, key, value):
-        self._db.Put(key, value)
+        self.Put(key, value)
 
     def __delitem__(self, key):
-        self._db.Delete(key)
+        self.Delete(key)
 
     def __contains__(self, key):
         raise NotImplementedError()
@@ -56,9 +56,6 @@ class LevelDB:
         """
         return type(self)(self._db, self.leveldb)
 
-    def write(self):
-        self._db.Write()
-
     def write_batch(self):
         return BatchContext(self)
 
@@ -66,13 +63,15 @@ class LevelDB:
         return self.write_batch()
 
     def items(self, *args, **kwargs):
-        yield from self._db.RangeIter(*args, **kwargs)
+        yield from self.RangeIter(*args, **kwargs)
 
-    def keys(self):
-        yield from self.items(include_value=False)
+    def keys(self, *args, **kwargs):
+        kwargs['include_value'] = False
+        yield from self.items(*args, **kwargs)
 
-    def values(self):
-        yield from self.items(include_keys=False)
+    def values(self, *args, **kwargs):
+        for k, v in self.items(*args, **kwargs):
+            yield v
 
     def has_key(self, key):
         return key in self
@@ -81,7 +80,7 @@ class LevelDB:
         self.leveldb.DestroyDB(self._db.path)
 
     def stats(self):
-        return self._db.GetStats()
+        return self.GetStats()
 
     def create_snapshot(self):
-        self.CreateSnapshot
+        return self.CreateSnapshot()
