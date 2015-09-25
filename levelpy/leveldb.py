@@ -3,7 +3,6 @@
 #
 
 from .batch_context import BatchContext
-from .sublevel import Sublevel
 
 
 class LevelDB:
@@ -44,6 +43,9 @@ class LevelDB:
             if key.step is not None:
                 raise ValueError("Step is not available for levelpy slices")
             return self.RangeIter(key_from=key.start, key_to=key.stop)
+        elif isinstance(key, (tuple, list, set)):
+            t = type(key)
+            return t(self.Get(k) for k in key)
         else:
             return self.Get(key)
 
@@ -96,3 +98,7 @@ class LevelDB:
         Generate a sublevel with prefix key.
         """
         return Sublevel(self, key)
+
+# This must be imported after the class definition as the Sublevel requires the
+# class to be defined
+from .sublevel import Sublevel                                           # noqa

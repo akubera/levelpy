@@ -92,6 +92,16 @@ def test_get_slice_with_start_stop_step(db, mock_leveldb_backend):
         db['a':'z':3]
 
 
+@pytest.mark.parametrize('input', [
+    (1, 2, 3),
+    ['1', '2']
+])
+def test_get_slice_with_collection(db, input):
+    something = db[input]
+    assert type(something) is type(input)
+    assert db._db.Get.call_count is len(input)
+
+
 def test_contains(db):
     db['a'] = 'db'
     with pytest.raises(NotImplementedError):
@@ -151,3 +161,9 @@ def test_stats(db, mock_leveldb_backend):
 def test_create_snapshot(db, mock_leveldb_backend):
     db.create_snapshot()
     assert mock_leveldb_backend.CreateSnapshot.called
+
+
+def test_create_sublevel(db, mock_leveldb_backend):
+    a = db.sublevel('a')
+    assert a.db is db
+    assert a.prefix is 'a'
