@@ -3,6 +3,7 @@
 #
 
 from .batch_context import BatchContext
+from .sublevel import Sublevel
 
 
 class LevelDB:
@@ -89,3 +90,9 @@ class LevelDB:
 
     def create_snapshot(self):
         return self.CreateSnapshot()
+
+    def sublevel(self, key):
+        """
+        Generate a sublevel with prefix key.
+        """
+        return Sublevel(self, key)
