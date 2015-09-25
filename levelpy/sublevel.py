@@ -38,6 +38,26 @@ class Sublevel(LevelDB):
     def __setitem__(self, key, value):
         self.db[self.subkey(key)] = value
 
+    def __delitem__(self, key):
+        del self.db[self.subkey(key)]
+
+    def __copy__(self):
+        """
+        Simple copy of sublevel - same db, prefix, and delimeter
+        """
+        return type(self)(self.db, self.prefix, self.delim)
+
+    def items(self, key_from='', key_to=None, *args, **kwargs):
+        """iterate over all items in the sublevel"""
+        print("ITEMS")
+        key_from = self.subkey(key_from)
+        key_to = self.subkey('~' if (key_to is None) else key_to)
+        yield from self.db.items(key_from=key_from,
+                                 key_to=key_to,
+                                 *args,
+                                 **kwargs)
+
+
     def subkey(self, key):
         return self.prefix + self.delim + key
 

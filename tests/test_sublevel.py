@@ -2,6 +2,7 @@
 # tests/test_leveldb.py
 #
 
+from copy import copy
 import pytest
 from unittest import mock
 from levelpy.sublevel import Sublevel
@@ -71,9 +72,28 @@ def test_set_item(sub, db, k_d):
     db.__setitem__.assert_called_with(k_d + key, 90)
 
 
+def test_del_item(sub, db, k_d):
+    key = 'whatever'
+    del sub[key]
+    db.__delitem__.assert_called_with(k_d + key)
+
+
+def test_copy(sub, db, key, delim):
+    cp = copy(sub)
+    assert cp.db is db
+    assert cp.prefix is key
+    assert cp.delim is delim
+
+
 def test_create_sublevel(sub, db, k_d):
     key = 'a'
     a = sub.sublevel(key)
     expected_prefix = k_d + key
     assert a.db is db
     assert a.prefix == expected_prefix
+
+
+def test_items(sub, db, k_d):
+    start, stop = k_d, k_d + "~"
+    for i in sub.items(): pass
+    db.items.assert_called_with(key_from=start, key_to=stop)
