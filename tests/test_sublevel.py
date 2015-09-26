@@ -116,3 +116,19 @@ def test_contains(sub, db, k_d):
     key = 'a'
     key in sub
     assert db.__contains__.called_with(k_d + key)
+
+
+def test_keys(sub, db, k_d):
+    for x in sub.keys():
+        pass
+    db.items.assert_called_with(include_value=False,
+                                key_from=k_d,
+                                key_to=k_d+'~')
+
+
+def test_values(sub, db, k_d):
+    for x in sub.values():
+        pass
+    db.items.assert_called_with(include_value=True,
+                                key_from=k_d,
+                                key_to=k_d+'~')

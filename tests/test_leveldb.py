@@ -110,6 +110,7 @@ def test_contains(db, mock_leveldb_backend):
                                                       key_from=key,
                                                       key_to=key+'~')
 
+
 def test_items(db):
     for x in db.items():
         assert x

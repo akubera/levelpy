@@ -78,6 +78,7 @@ class LevelDB:
         yield from self.items(*args, **kwargs)
 
     def values(self, *args, **kwargs):
+        kwargs['include_value'] = True
         for k, v in self.items(*args, **kwargs):
             yield v
 
