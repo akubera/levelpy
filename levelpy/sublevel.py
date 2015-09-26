@@ -60,6 +60,8 @@ class Sublevel(LevelDB):
                                  **kwargs)
 
     def subkey(self, key):
+        if key is None:
+            return None
         return self.prefix + self.delim + key
 
     def sublevel(self, key):

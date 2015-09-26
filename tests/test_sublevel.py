@@ -51,6 +51,18 @@ def test_get_slice(sub, db, k_d):
     db.__getitem__.assert_called_with(slice(k_d + 'a', k_d + 'b'))
 
 
+def test_get_slice_with_start(sub, db, k_d):
+    key = '1'
+    sub[key:]
+    db.__getitem__.assert_called_with(slice(k_d+key, None))
+
+
+def test_get_slice_with_stop(sub, db, k_d):
+    key = '1'
+    sub[:key]
+    db.__getitem__.assert_called_with(slice(None, k_d+key))
+
+
 def test_get_bad_slice(sub, db, k_d):
     with pytest.raises(ValueError):
         sub['a':'b':2]
