@@ -56,7 +56,7 @@ class LevelDB:
         self.Delete(key)
 
     def __contains__(self, key):
-        raise NotImplementedError()
+        key in iter(self.keys(key_from=key, key_to=key + '~'))
 
     def __copy__(self):
         """
@@ -80,9 +80,6 @@ class LevelDB:
     def values(self, *args, **kwargs):
         for k, v in self.items(*args, **kwargs):
             yield v
-
-    def has_key(self, key):
-        return key in iter(self.keys())
 
     def destroy_db(self):
         self.leveldb.DestroyDB(self.path)

@@ -102,12 +102,13 @@ def test_get_slice_with_collection(db, input):
     assert db._db.Get.call_count is len(input)
 
 
-def test_contains(db):
-    db['a'] = 'db'
-    with pytest.raises(NotImplementedError):
-        assert 'a' in db
-    # mock_leveldb_backend.__contains__.assert_called_with('a')
-
+def test_contains(db, mock_leveldb_backend):
+    # TODO: Remove implementation details
+    key = 'a'
+    key in db
+    mock_leveldb_backend.RangeIter.assert_called_with(include_value=False,
+                                                      key_from=key,
+                                                      key_to=key+'~')
 
 def test_items(db):
     for x in db.items():
@@ -128,20 +129,17 @@ def test_values(db, mock_leveldb_backend):
     # mock_leveldb_backend.__contains__.assert_called_with('a')
 
 
-def test_has_key(db):
-    has_a = db.has_key('a')
-    assert not has_a
-
-
 def test_copy(db, mock_leveldb_backend):
     from copy import copy
     carbon = copy(db)
     assert carbon._db is mock_leveldb_backend
     # mock_leveldb_backend.__contains__.assert_called_with('a')
 
+
 def test_write_batch(db):
     with db.write_batch() as ctx:
         assert ctx is not None
+
 
 def test_batch(db):
     with db.batch() as ctx:

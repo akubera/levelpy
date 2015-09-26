@@ -95,5 +95,12 @@ def test_create_sublevel(sub, db, k_d):
 
 def test_items(sub, db, k_d):
     start, stop = k_d, k_d + "~"
-    for i in sub.items(): pass
+    for i in sub.items():
+        pass
     db.items.assert_called_with(key_from=start, key_to=stop)
+
+
+def test_contains(sub, db, k_d):
+    key = 'a'
+    key in sub
+    assert db.__contains__.called_with(k_d + key)
