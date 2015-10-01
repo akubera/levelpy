@@ -16,7 +16,7 @@ from fixtures import leveldir                                            # noqa
 
 @pytest.fixture(scope='module')
 def backend_class_str():
-    return "plyvel.DB"
+    return "leveldb.LevelDB"
 
 
 @pytest.fixture(scope='module')
@@ -54,14 +54,15 @@ def test_constructor(leveldir, backend_class_str, backend_class):
 
 def test_constructor_with_premade_backend(backend):
     lvl = LevelDB(backend)
-    assert lvl.Put == backend.put
-    assert lvl.Get == backend.get
-    assert lvl.Delete == backend.delete
-    assert lvl.Write is None
+    assert lvl.Put == backend.Put
+    assert lvl.Get == backend.Get
+    assert lvl.Delete == backend.Delete
+    assert lvl.Write == backend.Write
+    assert lvl.RangeIter == backend.RangeIter
+    assert lvl.GetStats == backend.GetStats
+    assert lvl.CreateSnapshot == backend.CreateSnapshot
 
-    # this needs to be figured out
     assert lvl.path is None
-    # assert lvl.RangeIter == backend.range
 
 
 def test_backend_package(backend_package):

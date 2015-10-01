@@ -94,13 +94,17 @@ class LevelDB:
             return self.Get(key)
 
     def __setitem__(self, key, value):
-        self.Put(key, value)
+        self.Put(bytes(key), bytes(value))
 
     def __delitem__(self, key):
-        self.Delete(key)
+        self.Delete(bytes(key))
 
     def __contains__(self, key):
-        key in iter(self.keys(key_from=key, key_to=key + '~'))
+        bkey = bytes(key)
+        for next_key in self.keys(key_from=bkey, key_to=bkey + b'~'):
+            if key == next_key:
+                return True
+        return False
 
     def __copy__(self):
         """
@@ -115,7 +119,12 @@ class LevelDB:
         return self.write_batch()
 
     def items(self, *args, **kwargs):
-        yield from self.RangeIter(*args, **kwargs)
+        # yield from self.RangeIter(*args, **kwargs)
+        print("items(", args, kwargs, ")")
+        for item in self.RangeIter(*args, **kwargs):
+            bitem = bytes(item)
+            print("  ", bitem)
+            yield bitem
 
     def keys(self, *args, **kwargs):
         kwargs['include_value'] = False
