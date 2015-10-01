@@ -4,6 +4,7 @@
 
 from .batch_context import BatchContext
 
+from .leveldb_module_shims import NormalizeBackend
 
 class LevelDB:
     """
@@ -59,10 +60,12 @@ class LevelDB:
             self._leveldb_cls = self._db.__class__
             self._leveldb_pkg = self._leveldb_cls.__module__
 
+        NormalizeBackend(self._db)
+
         def copy_attr(name, items):
             for item in items:
                 if hasattr(self._db, item):
-                    setattr(self, name, item)
+                    setattr(self, name, getattr(self._db, item))
                     return
             setattr(self, name, None)
 
