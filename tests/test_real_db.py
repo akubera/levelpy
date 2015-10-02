@@ -1,6 +1,7 @@
 #
 # tests/test_real_db.py
 #
+# flake8: noqa
 """
 Tests for storage/retreival of a real database.
 """

@@ -3,8 +3,8 @@
 #
 
 from .batch_context import BatchContext
-
 from .leveldb_module_shims import NormalizeBackend
+
 
 class LevelDB:
     """
@@ -24,6 +24,7 @@ class LevelDB:
                  db,
                  leveldb_cls='leveldb.LevelDB',
                  **kwargs):
+        print("CTOR", self, db, leveldb_cls, type(db))
         # if db is a string - create the db object from the leveldb_cls param
         if isinstance(db, str):
 
@@ -38,6 +39,7 @@ class LevelDB:
 
             # passed the class directly
             elif isinstance(leveldb_cls, type):
+                print("TYPE")
                 self._leveldb_pkg = leveldb_cls.__modue__
                 self._leveldb_cls = leveldb_cls
 
@@ -62,9 +64,11 @@ class LevelDB:
             self._leveldb_cls = self._db.__class__
             self._leveldb_pkg = self._leveldb_cls.__module__
 
-        NormalizeBackend(self._db)
+        NormalizeBackend(self, self._db)
 
-        def copy_attr(name, items):
+        def update_attr(name, items):
+            if hasattr(self, name):
+                return
             for item in items:
                 if hasattr(self._db, item):
                     setattr(self, name, getattr(self._db, item))
@@ -72,17 +76,16 @@ class LevelDB:
             setattr(self, name, None)
 
         # Alias methods
-        copy_attr('Put', ('Put', 'put'))
-        copy_attr('Get', ('Get', 'get'))
-        copy_attr('Delete', ('Delete', 'delete'))
-        copy_attr('Write', ('Write', 'write'))
-        copy_attr('RangeIter', ('RangeIter', 'range_iter'))
-        copy_attr('GetStats', ('GetStats', 'get_stats'))
-        copy_attr('CreateSnapshot', ('CreateSnapshot', 'snapshot'))
-        copy_attr('WriteBatch', ('WriteBatch', 'write_batch'))
+        update_attr('Put', ('Put', 'put'))
+        update_attr('Get', ('Get', 'get'))
+        update_attr('Delete', ('Delete', 'delete'))
+        update_attr('Write', ('Write', 'write'))
+        update_attr('RangeIter', ('RangeIter', 'range_iter'))
+        update_attr('GetStats', ('GetStats', 'get_stats'))
+        update_attr('CreateSnapshot', ('CreateSnapshot', 'snapshot'))
 
         # attempt to copy the path of the database
-        copy_attr('path', ('name', 'filename'))
+        update_attr('path', ('name', 'filename'))
 
     def __getitem__(self, key):
 
@@ -132,7 +135,7 @@ class LevelDB:
         """
         Shallow copy of database - reusing the current instance connection
         """
-        return type(self)(self._db, self.leveldb)
+        return type(self)(self._db)
 
     def write_batch(self):
         return BatchContext(self)
@@ -164,7 +167,8 @@ class LevelDB:
             yield v
 
     def destroy_db(self):
-        self.leveldb.DestroyDB(self.path)
+        raise NotImplementedError
+        self._db.DestroyDB(self.path)
 
     def stats(self):
         return self.GetStats()
