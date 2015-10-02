@@ -89,7 +89,17 @@ class LevelDB:
         if isinstance(key, slice):
             if key.step is not None:
                 raise ValueError("Step is not available for levelpy slices")
-            return self.RangeIter(key_from=key.start, key_to=key.stop)
+
+            start = bytes(key.start, self.str_encoding) \
+                    if isinstance(key.start, str)       \
+                    else key.start
+
+            stop = bytes(key.stop, self.str_encoding) \
+                   if isinstance(key.stop, str)       \
+                   else key.stop
+
+            return self.RangeIter(key_from=start, key_to=stop)
+
         elif isinstance(key, (tuple, list, set)):
             t = type(key)
             return t(self[k] for k in key)

@@ -82,3 +82,24 @@ def test_item_iteration(db, its):
 
     assert len(l) is 3
     assert all(a[0] == a[1][1] for a in zip(l, its))
+
+
+@pytest.mark.parametrize('slice_, data, expected', (
+    ( (b'A', b'B'),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ('a', 'b')
+    ),
+    ( ('A', 'B'),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ('a', 'b')
+    ),
+))
+def test_item_iteration_slice(db, slice_, data, expected):
+
+    for k, v in data:
+        db[k] = v
+
+    l = list(v for k, v in db[slice_[0]:slice_[1]])
+
+    assert len(l) is len(expected)
+    # assert all(a[0] == a[1][1] for a in zip(l, its))
