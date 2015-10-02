@@ -18,6 +18,8 @@ class LevelDB:
     _leveldb_pkg = None
     path = None
 
+    str_encoding = 'utf-8'
+
     def __init__(self,
                  db,
                  leveldb_cls='leveldb.LevelDB',
@@ -83,28 +85,38 @@ class LevelDB:
         copy_attr('path', ('name', 'filename'))
 
     def __getitem__(self, key):
+
         if isinstance(key, slice):
             if key.step is not None:
                 raise ValueError("Step is not available for levelpy slices")
             return self.RangeIter(key_from=key.start, key_to=key.stop)
         elif isinstance(key, (tuple, list, set)):
             t = type(key)
-            return t(self.Get(k) for k in key)
+            return t(self[k] for k in key)
+        elif isinstance(key, str):
+            key = bytes(key, self.str_encoding)
+            val = self._db.Get(key)
+            return str(val, self.str_encoding)
         else:
-            return self.Get(key)
+            return bytes(self._db.Get(key))
 
     def __setitem__(self, key, value):
-        self.Put(bytes(key), bytes(value))
+        if isinstance(key, str):
+            key = bytes(key, self.str_encoding)
+        if isinstance(value, str):
+            value = bytes(value, self.str_encoding)
+
+        self.Put(key, value)
 
     def __delitem__(self, key):
-        self.Delete(bytes(key))
+        if isinstance(key, str):
+            key = bytes(key, self.str_encoding)
+        self.Delete(key)
 
     def __contains__(self, key):
-        bkey = bytes(key)
-        for next_key in self.keys(key_from=bkey, key_to=bkey + b'~'):
-            if key == next_key:
-                return True
-        return False
+        if isinstance(key, str):
+            key = bytes(key, self.str_encoding)
+        return key in self.keys(key_from=key, key_to=key + b'~')
 
     def __copy__(self):
         """
@@ -119,12 +131,18 @@ class LevelDB:
         return self.write_batch()
 
     def items(self, *args, **kwargs):
-        # yield from self.RangeIter(*args, **kwargs)
-        print("items(", args, kwargs, ")")
-        for item in self.RangeIter(*args, **kwargs):
-            bitem = bytes(item)
-            print("  ", bitem)
-            yield bitem
+
+        enc = kwargs.pop('encoding', None)
+
+        def transform(obj):
+            if isinstance(obj, tuple):
+                return tuple(map(transform, obj))
+            elif enc is None:
+                return bytes(obj)
+            else:
+                return obj.decode(enc)
+
+        yield from map(transform, self.RangeIter(*args, **kwargs))
 
     def keys(self, *args, **kwargs):
         kwargs['include_value'] = False

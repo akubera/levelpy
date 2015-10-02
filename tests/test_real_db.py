@@ -56,8 +56,29 @@ def test_db_type(db):
     assert isinstance(db, LevelDB)
 
 
-def test_put_bytes(db):
-    k, v = b'KEYY', b"VALUE"
+@pytest.mark.parametrize('k, v', (
+  (b'KEY', b'VALUE'),
+  ('KEY', 'VALUE'),
+))
+def test_item_access(db, k, v):
     db[k] = v
     assert k in db
     assert db[k] == v
+    # del db[k]
+
+
+@pytest.mark.parametrize('its', (
+  (
+   ('a1', 'VALU'),
+   ('b2', 'VAL'),
+   ('c3', 'VALUE'),
+  ),
+))
+def test_item_iteration(db, its):
+    for k, v in its:
+        db[k] = v
+
+    l = list(v for k, v in db.items(encoding='utf-8'))
+
+    assert len(l) is 3
+    assert all(a[0] == a[1][1] for a in zip(l, its))
