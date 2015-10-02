@@ -67,21 +67,21 @@ def test_item_access(db, k, v):
     # del db[k]
 
 
-@pytest.mark.parametrize('its', (
+@pytest.mark.parametrize('data', (
   (
    ('a1', 'VALU'),
    ('b2', 'VAL'),
    ('c3', 'VALUE'),
   ),
 ))
-def test_item_iteration(db, its):
-    for k, v in its:
+def test_item_iteration(db, data):
+    for k, v in data:
         db[k] = v
 
     l = list(v for k, v in db.items(encoding='utf-8'))
 
-    assert len(l) is 3
-    assert all(a[0] == a[1][1] for a in zip(l, its))
+    assert len(l) is len(data)
+    assert all(a[0] == a[1][1] for a in zip(l, data))
 
 
 @pytest.mark.parametrize('slice_, data, expected', (
@@ -93,13 +93,29 @@ def test_item_iteration(db, its):
       [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
       ('a', 'b')
     ),
+    ( ('A', None),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ('a', 'b', 'c')
+    ),
+    ( ('A1', None),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ('b', 'c')
+    ),
+    ( (None, 'A1'),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ('a', 'b')
+    ),
+    ( (None, None),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ['a', 'b', 'c']
+    ),
 ))
 def test_item_iteration_slice(db, slice_, data, expected):
 
     for k, v in data:
         db[k] = v
 
-    l = list(v for k, v in db[slice_[0]:slice_[1]])
+    l = type(expected)(v.decode() for k, v in db[slice_[0]:slice_[1]])
 
     assert len(l) is len(expected)
-    # assert all(a[0] == a[1][1] for a in zip(l, its))
+    assert l == expected
