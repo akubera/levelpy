@@ -24,7 +24,6 @@ class LevelDB:
                  db,
                  leveldb_cls='leveldb.LevelDB',
                  **kwargs):
-        print("CTOR", self, db, leveldb_cls, type(db))
         # if db is a string - create the db object from the leveldb_cls param
         if isinstance(db, str):
 
@@ -39,7 +38,6 @@ class LevelDB:
 
             # passed the class directly
             elif isinstance(leveldb_cls, type):
-                print("TYPE")
                 self._leveldb_pkg = leveldb_cls.__modue__
                 self._leveldb_cls = leveldb_cls
 
