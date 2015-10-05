@@ -74,6 +74,11 @@ def test_delitem(db, mock_leveldb_backend):
     mock_leveldb_backend.Delete.assert_called_with(b'a')
 
 
+def test_delitem_strkey(db, mock_leveldb_backend):
+    del db['a']
+    mock_leveldb_backend.Delete.assert_called_with(b'a')
+
+
 def test_get_slice_with_start(db, mock_leveldb_backend):
     db[1:]
     mock_leveldb_backend.RangeIter.assert_called_with(key_from=1,
@@ -173,6 +178,7 @@ def test_batch_exception(db, mock_leveldb_backend, mock_WriteBatch):
 
     mock_WriteBatch.Put.assert_called_with(b'1', b'0')
     assert not mock_leveldb_backend.Write.called
+
 
 def test_destroy_db(db, mock_LevelDB):
     with pytest.raises(NotImplementedError):

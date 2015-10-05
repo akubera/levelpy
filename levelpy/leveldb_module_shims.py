@@ -7,7 +7,6 @@ Shims for normalizing modules.
 
 import logging
 
-print(dir(logging))
 log = logging.getLogger(__name__)
 
 

@@ -38,7 +38,7 @@ class LevelDB:
 
             # passed the class directly
             elif isinstance(leveldb_cls, type):
-                self._leveldb_pkg = leveldb_cls.__modue__
+                self._leveldb_pkg = leveldb_cls.__module__
                 self._leveldb_cls = leveldb_cls
 
             # leveldb_cls *should* provide the backend
@@ -166,7 +166,6 @@ class LevelDB:
 
     def destroy_db(self):
         raise NotImplementedError
-        self._db.DestroyDB(self.path)
 
     def stats(self):
         return self.GetStats()

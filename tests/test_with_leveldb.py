@@ -46,8 +46,8 @@ def test_constructor(leveldir, backend_class_str, backend_class):
     assert isinstance(lvl._db, backend_class)
 
 
-def test_constructor(leveldir, backend_class_str, backend_class):
-    lvl = LevelDB(leveldir, backend_class_str, create_if_missing=True)
+def test_constructor_with_class_obj(leveldir, backend_class):
+    lvl = LevelDB(leveldir, backend_class, create_if_missing=True)
     assert isinstance(lvl, LevelDB)
     assert isinstance(lvl._db, backend_class)
 
