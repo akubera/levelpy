@@ -11,14 +11,14 @@ from warnings import warn
 
 @pytest.fixture
 def mock_write_batch():
-    import leveldb
+    leveldb = pytest.importorskip('leveldb')
     return mock.create_autospec(leveldb.WriteBatch())
 
 
 @pytest.fixture
 def mock_db(mock_write_batch):
-    db = mock.MagicMock(spec=levelpy.leveldb.LevelDB)
-    db.leveldb.WriteBatch.return_value = mock_write_batch
+    db = mock.MagicMock(spec=levelpy.leveldb.LevelDB,
+                        WriteBatch=lambda: mock_write_batch)
     db.Write = mock.Mock()
     return db
 
