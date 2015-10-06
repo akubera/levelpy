@@ -26,10 +26,16 @@ class, providing a path and, optionally, the *full* classname (package + class)
 of the backend to use. The default class is ``leveldb.LevelDB``, using the
 `py-leveldb <https://github.com/rjpower/py-leveldb>`_ interface.
 
-Alternatively, you can create a separate leveldb connection and pass this to
-the levelpy.LevelDB constructor. This ignores the backend class parameter. If
-the first parameter is not a string, it is assumed to be an (already connected)
-backend.
+You can also give a class as the second parameter, which is interpreted to be
+the *type* of the connection to create. This is called with the path and
+expanded keyword arguments. Similarly, any callable can be used as the second
+parameter, and the constructor will forward the path and any keyword arguments
+to it (the database instance **MUST** be returned by the function).
+
+Alternatively, you can create a separate leveldb connection and pass this to the
+levelpy.LevelDB constructor. If the first parameter is not a string, it is
+assumed to be an (already connected) backend, and the 'backend class' parameter
+is ignored.
 
 examples:
 
@@ -39,9 +45,12 @@ examples:
 
   db = LevelDB('/path/to/db')  # use the default leveldb.LevelDB backend
   --------------------
-  db = LevelDB('/path/to/db', 'pyvel.DB', error_if_exists=True)  # use the Plyvel backend w/ keyword
+  db = LevelDB('/path/to/db', 'plyvel.DB', error_if_exists=True)  # use the Plyvel backend w/ keyword
   --------------------
   db = LevelDB('/path/to/db', 'my.custom.leveldb.DATABASE')  # use your own backend
+  --------------------
+  cls = leveldb.LevelDB
+  db = LevelDB('/path/to/db', cls)  # use a specific class to create an instance
   --------------------
   db = LevelDB(cnx)  # use an already created leveldb connection (backend string is ignored)
 
@@ -62,7 +71,7 @@ the ``_db`` attribute).
 Access
 ~~~~~~
 
-As LevelDB is really just a big key-value sture,LevelPy implements a
+As LevelDB is really just a big key-value store, LevelPy implements a
 dict-interface to the database (using the [] operators).
 
 .. code:: python
