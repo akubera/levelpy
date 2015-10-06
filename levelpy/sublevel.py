@@ -3,11 +3,11 @@
 #
 
 from .leveldb import LevelDB
+from .serializer import Serializer
 
 
 class Sublevel(LevelDB):
     """
-
     A Sublevel can be thought of as a table or collection in a leveldb
     databaase. They are a group of keys which all start with the same prefix,
     allowing for an organized collection of similar entries.
@@ -17,10 +17,20 @@ class Sublevel(LevelDB):
 
     """
 
-    def __init__(self, db, prefix, delim='!'):
+    def __init__(self, db, prefix, delim='!', value_encoding='utf8'):
         self.db = db
         self.prefix = prefix
         self.delim = delim
+        if isinstance(value_encoding, str):
+            self.encode = Serializer.encode[value_encoding]
+            self.decode = Serializer.decode[value_encoding]
+
+        elif isinstance(value_encoding, (tuple, list)):
+            if not all(callable, value_encoding):
+                raise TypeError
+            self.encode, self.decode = value_encoding
+        else:
+            raise TypeError
 
     def __getitem__(self, key):
         if isinstance(key, slice):
