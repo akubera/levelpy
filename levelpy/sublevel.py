@@ -2,11 +2,11 @@
 # levelpy/sublevel.py
 #
 
-from .leveldb import LevelDB
+from .db_accessors import (LevelReader, LevelWriter)
 from .serializer import Serializer
 
 
-class Sublevel(LevelDB):
+class Sublevel(LevelReader, LevelWriter):
     """
     A Sublevel can be thought of as a table or collection in a leveldb
     databaase. They are a group of keys which all start with the same prefix,
