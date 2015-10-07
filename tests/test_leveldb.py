@@ -135,9 +135,9 @@ def test_keys(db):
 
 
 def test_values(db, mock_leveldb_backend):
-    mock_leveldb_backend.RangeIter.return_value = [(True, True)]
+    mock_leveldb_backend.RangeIter.return_value = [(b'True', b'True')]
     for x in db.values():
-        assert x
+        assert x == 'True'
     # mock_leveldb_backend.__contains__.assert_called_with('a')
 
 
