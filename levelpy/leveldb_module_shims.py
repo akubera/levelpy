@@ -28,12 +28,22 @@ def NormalizeBackend(wrapper, db):
 
 
 def py_leveldb(wrapper, db):
-    from leveldb import WriteBatch
+
+    import leveldb
+
     if hasattr(db, 'WriteBatch'):
         wrapper.WriteBatch = db.WriteBatch
     else:
-        wrapper.WriteBatch = lambda: WriteBatch()
+        wrapper.WriteBatch = leveldb.WriteBatch
+
+    wrapper.DestroyDB = leveldb.DestroyDB
+    wrapper.RepairDB = leveldb.RepairDB
+    wrapper.Snapshot = leveldb.Snapshot
 
 
 def plyvel_database(wrapper, db):
     log.debug('plyvel_database: %s' % (db))
+
+    import plyvel
+
+    wrapper.DestroyDB = plyvel.destroy_db
