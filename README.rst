@@ -12,7 +12,7 @@ intends to be a thin wrapper around other implementations, providing a simple
 and pythonic interface to the lower level database.
 
 **LevelPy alone does *NOT* provide access to a database, nor does it declare
-**one as a dependency. It is up to YOU to choose and install such a package.**
+one as a dependency. It is up to YOU to choose and install such a package.**
 
 
 Usage
