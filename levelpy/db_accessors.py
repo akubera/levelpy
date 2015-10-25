@@ -5,6 +5,7 @@
 from .batch_context import BatchContext
 from numbers import Number
 
+
 class LevelAccessor:
     """
     A simple class with a method for transforming strings or bytes into keys,
@@ -20,8 +21,9 @@ class LevelAccessor:
 
     def key_transform(self, key):  # -> bytes
         """
-        Takes some potential key and returns the bytes that that this accessor
-        can use to retrieve values from the database.
+        Takes some potential key and returns the bytes that this accessor will
+        use to retrieve values from the database. This is done by prefixing the
+        key with the accessor's prefix and delimiter.
         """
         return self._key_prefix + self.byteify(key)
 
@@ -67,6 +69,11 @@ class LevelAccessor:
 class LevelReader(LevelAccessor):
     """
     Class containing methods for reading from an established database.
+
+    This class mimics the dict class by implementing __getitem__ as a handy
+    wrapper around the backend's Get and RangeIter methods, along with 'keys',
+    'values', 'get', and 'items'. These also pass any keyword arguments to the
+    backend server, so no functionality is lost.
     """
 
     _range_ending = b'~'
@@ -133,6 +140,10 @@ class LevelReader(LevelAccessor):
 
 
 class LevelWriter(LevelAccessor):
+    """
+    Class containing standard methods for writing and deleting items from a
+    database.
+    """
 
     def value_encode(self, obj):
         return self.encode(obj)
