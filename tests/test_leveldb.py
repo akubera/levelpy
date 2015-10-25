@@ -81,14 +81,14 @@ def test_delitem_strkey(db, mock_leveldb_backend):
 
 def test_get_slice_with_start(db, mock_leveldb_backend):
     db[1:]
-    mock_leveldb_backend.RangeIter.assert_called_with(key_from=1,
+    mock_leveldb_backend.RangeIter.assert_called_with(key_from=b'1',
                                                       key_to=None)
 
 
 def test_get_slice_with_stop(db, mock_leveldb_backend):
     db[:1]
     mock_leveldb_backend.RangeIter.assert_called_with(key_from=None,
-                                                      key_to=1)
+                                                      key_to=b'1')
 
 
 def test_get_slice_with_start_stop(db, mock_leveldb_backend):
@@ -199,4 +199,5 @@ def test_create_snapshot(db, mock_leveldb_backend):
 def test_create_sublevel(db, mock_leveldb_backend):
     a = db.sublevel('a')
     assert a.db is db
-    assert a.prefix is 'a'
+    assert a.prefix == b'a'
+    assert a._key_prefix == b'a!'

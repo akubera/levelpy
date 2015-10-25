@@ -3,7 +3,7 @@
 #
 
 from .batch_context import BatchContext
-
+from numbers import Number
 
 class LevelAccessor:
     """
@@ -11,26 +11,57 @@ class LevelAccessor:
     and a _key_prefix member which will be prepended to the outgoing key bytes.
     """
 
-    _key_prefix = b''
+    _prefix = b''
+    _delim = b''
 
-    def set_key_prefix(self, prefix):
-        """
-        Sets the prefix of the accessor to given value (transformed to bytes)
-        """
-        self._key_prefix = bytes(prefix, 'utf8')      \
-                           if isinstance(prefix, str) \
-                           else bytes(prefix)
+    def __init__(self, prefix, delim):
+        self.prefix = prefix
+        self.delim = delim
 
     def key_transform(self, key):  # -> bytes
         """
         Takes some potential key and returns the bytes that that this accessor
         can use to retrieve values from the database.
         """
-        if isinstance(key, str):
-            key = key.encode()
-        else:
-            key = bytes(key)
-        return self._key_prefix + key
+        return self._key_prefix + self.byteify(key)
+
+    @property
+    def _key_prefix(self):
+        return self._prefix + self._delim
+
+    @property
+    def prefix(self):
+        return self._prefix
+
+    @prefix.setter
+    def prefix(self, value):
+        self._prefix = self.byteify(value)
+
+    @property
+    def delim(self):
+        return self._delim
+
+    @delim.setter
+    def delim(self, value):
+        self._delim = self.byteify(value)
+
+    @staticmethod
+    def byteify(value) -> bytes:
+        """
+        Static method to return input as bytes. Currently tries to decode
+        string, or if that doesn't work, calls the bytes constructor
+        """
+        try:
+            return value.encode()
+        except AttributeError:
+            if value is None:
+                # Not sure whether None or empty bytes should be returned.
+                # return b''
+                return None
+            elif isinstance(value, (Number, )):
+                return str(value).encode()
+            else:
+                return bytes(value)
 
 
 class LevelReader(LevelAccessor):
@@ -39,6 +70,9 @@ class LevelReader(LevelAccessor):
     """
 
     _range_ending = b'~'
+
+    def __init__(self, prefix, delim):
+        LevelAccessor.__init__(self, prefix, delim)
 
     def value_decode(self, byte_str: bytes):
         return self.decode(byte_str)
@@ -58,13 +92,8 @@ class LevelReader(LevelAccessor):
             if key.step is not None:
                 raise ValueError("Step is not available for levelpy slices")
 
-            start = bytes(key.start, self.str_encoding) \
-                    if isinstance(key.start, str)       \
-                    else key.start
-
-            stop = bytes(key.stop, self.str_encoding) \
-                   if isinstance(key.stop, str)       \
-                   else key.stop
+            # Note - if None, these should remain None
+            start, stop = map(self.byteify, (key.start, key.stop))
 
             return self.RangeIter(key_from=start, key_to=stop)
 

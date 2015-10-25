@@ -11,12 +11,12 @@ from levelpy.leveldb import LevelDB
 
 @pytest.fixture
 def key():
-    return 'A'
+    return b'A'
 
 
 @pytest.fixture
 def delim():
-    return '!'
+    return b'!'
 
 
 @pytest.fixture
@@ -43,24 +43,24 @@ def test_constructor(view, db, key, delim):
 
 def test_get_item(view, db, k_d):
     view['a']
-    db.__getitem__.assert_called_with(k_d + 'a')
+    db.__getitem__.assert_called_with(k_d + b'a')
 
 
 def test_get_slice(view, db, k_d):
     view['a':'b']
-    db.__getitem__.assert_called_with(slice(k_d + 'a', k_d + 'b'))
+    db.__getitem__.assert_called_with(slice(k_d + b'a', k_d + b'b'))
 
 
 def test_get_slice_with_start(view, db, k_d):
     key = '1'
     view[key:]
-    db.__getitem__.assert_called_with(slice(k_d+key, None))
+    db.__getitem__.assert_called_with(slice(k_d+b'1', None))
 
 
 def test_get_slice_with_stop(view, db, k_d):
     key = '1'
     view[:key]
-    db.__getitem__.assert_called_with(slice(None, k_d+key))
+    db.__getitem__.assert_called_with(slice(None, k_d + b'1'))
 
 
 def test_get_bad_slice(view, db, k_d):
@@ -69,9 +69,9 @@ def test_get_bad_slice(view, db, k_d):
 
 
 @pytest.mark.parametrize('input, args', [
-    (('1', '2', '3'), ('A!1', 'A!2', 'A!3')),
-    (['1', '2'], ['A!1', 'A!2']),
-    ({'1', '2'}, {'A!1', 'A!2'}),
+    (('1', '2', '3'), (b'A!1', b'A!2', b'A!3')),
+    (['1', '2'], [b'A!1', b'A!2']),
+    ({'1', '2'}, {b'A!1', b'A!2'}),
 ])
 def test_get_slice_with_collection(view, db, k_d, input, args):
     view[input]
@@ -88,13 +88,13 @@ def test_copy(view, db, key, delim):
 def test_create_view(view, db, k_d):
     key = 'a'
     a = view.view(key)
-    expected_prefix = k_d + key
+    expected_prefix = k_d + b'a'
     assert a.db is db
     assert a.prefix == expected_prefix
 
 
 def test_items(view, db, k_d):
-    start, stop = k_d, k_d + "~"
+    start, stop = k_d, k_d + b"~"
     for i in view.items():
         pass
     db.items.assert_called_with(key_from=start, key_to=stop)
@@ -103,7 +103,7 @@ def test_items(view, db, k_d):
 def test_contains(view, db, k_d):
     key = 'a'
     key in view
-    assert db.__contains__.called_with(k_d + key)
+    assert db.__contains__.called_with(k_d + b'a')
 
 
 def test_keys(view, db, k_d):
@@ -111,7 +111,7 @@ def test_keys(view, db, k_d):
         pass
     db.items.assert_called_with(include_value=False,
                                 key_from=k_d,
-                                key_to=k_d+'~')
+                                key_to=k_d+b'~')
 
 
 def test_values(view, db, k_d):
@@ -119,4 +119,4 @@ def test_values(view, db, k_d):
         pass
     db.items.assert_called_with(include_value=True,
                                 key_from=k_d,
-                                key_to=k_d+'~')
+                                key_to=k_d+b'~')

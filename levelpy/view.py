@@ -15,9 +15,11 @@ class View(LevelReader):
     """
 
     def __init__(self, db, prefix='', delim='!', value_encoding='utf-8'):
+
+        super().__init__(prefix, delim)
+
         self.db = db
         self.prefix = prefix
-        self._key_prefix = bytes(prefix, value_encoding) + bytes(delim, value_encoding)
         self.delim = delim
         # self.RangeIter = db.RangeIter
 
@@ -57,10 +59,7 @@ class View(LevelReader):
     def subkey(self, key):
         if key is None:
             return None
-        return self.prefix + self.delim + key
-
-    def sublevel(self, key):
-        return Sublevel(self.db, self.subkey(key), self.delim)
+        return self.key_transform(key)
 
     def view(self, prefix):
-        return View(self.db, self.prefix + self.delim + prefix)
+        return View(self.db, self.key_transform(prefix), self.delim)

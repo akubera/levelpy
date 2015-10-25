@@ -2,7 +2,11 @@
 # levelpy/sublevel.py
 #
 
-from .db_accessors import (LevelReader, LevelWriter)
+from .db_accessors import (
+    LevelAccessor,
+    LevelReader,
+    LevelWriter,
+)
 from .serializer import Serializer
 
 
@@ -18,9 +22,11 @@ class Sublevel(LevelReader, LevelWriter):
     """
 
     def __init__(self, db, prefix, delim='!', value_encoding='utf8'):
+
+        LevelAccessor.__init__(self, prefix, delim)
+
         self.db = db
-        self.prefix = prefix
-        self.delim = delim
+
         if isinstance(value_encoding, str):
             self.encode = Serializer.encode[value_encoding]
             self.decode = Serializer.decode[value_encoding]
@@ -72,7 +78,7 @@ class Sublevel(LevelReader, LevelWriter):
     def subkey(self, key):
         if key is None:
             return None
-        return self.prefix + self.delim + key
+        return self._key_prefix + self.byteify(key)
 
     def sublevel(self, key):
         return Sublevel(self.db, self.subkey(key), self.delim)
