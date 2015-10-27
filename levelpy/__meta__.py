@@ -6,8 +6,8 @@
 LevelPy metadata file.
 """
 
-version = '0.0.2'
-date = 'Oct 05, 2015'
+version = '0.0.3'
+date = 'Oct 27, 2015'
 author = 'Andrew Kubera'
 author_email = 'andrewkubera@gmail.com'
 license = '???'
