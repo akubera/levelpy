@@ -29,6 +29,7 @@ class LevelDB(LevelReader, LevelWriter):
 
         # if db is a string - create the db object from the leveldb_cls param
         if isinstance(db, str):
+            self.path = db
 
             # injected class name by string
             if isinstance(leveldb_cls, str):
@@ -50,7 +51,7 @@ class LevelDB(LevelReader, LevelWriter):
                 self._leveldb_cls = leveldb_cls
 
             # create the backend
-            self._db = self._leveldb_cls(db, **kwargs)
+            self._db = self._leveldb_cls(self.path, **kwargs)
 
             # The backend package was not determined.
             # Provided 'class' was just a factory function - inspect
@@ -67,6 +68,8 @@ class LevelDB(LevelReader, LevelWriter):
 
         NormalizeBackend(self, self._db)
 
+        # LevelReader.__init__(self, b'', b'', value_encoding)
+
         def update_attr(name, items):
             if hasattr(self, name):
                 return
@@ -75,18 +78,6 @@ class LevelDB(LevelReader, LevelWriter):
                     setattr(self, name, getattr(self._db, item))
                     return
             setattr(self, name, None)
-
-        # Alias methods
-        update_attr('Put', ('Put', 'put'))
-        update_attr('Get', ('Get', 'get'))
-        update_attr('Delete', ('Delete', 'delete'))
-        update_attr('Write', ('Write', 'write'))
-        update_attr('RangeIter', ('RangeIter', 'range_iter'))
-        update_attr('GetStats', ('GetStats', 'get_stats'))
-        update_attr('CreateSnapshot', ('CreateSnapshot', 'snapshot'))
-
-        # attempt to copy the path of the database
-        update_attr('path', ('name', 'filename'))
 
     def __copy__(self):
         """
@@ -114,8 +105,8 @@ class LevelDB(LevelReader, LevelWriter):
     def create_snapshot(self):
         return self.CreateSnapshot()
 
-    def sublevel(self, key):
+    def sublevel(self, key, delim=b'!'):
         """
         Generate a sublevel with prefix key.
         """
-        return Sublevel(self, key)
+        return Sublevel(self, key, delim)

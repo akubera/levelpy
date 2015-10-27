@@ -18,7 +18,7 @@ class View(LevelReader):
 
         super().__init__(prefix, delim)
 
-        self.db = db
+        self._db = db
         self.prefix = prefix
         self.delim = delim
         # self.RangeIter = db.RangeIter
@@ -29,32 +29,32 @@ class View(LevelReader):
                 raise ValueError("Step values are not available for "
                                  "slices in levelpy")
             start, stop = self.subkey(key.start), self.subkey(key.stop)
-            return self.db[start:stop]
+            return self._db[start:stop]
 
         elif isinstance(key, (tuple, list, set)):
             t = type(key)
-            return self.db[t(self.subkey(k) for k in key)]
+            return self._db[t(self.subkey(k) for k in key)]
 
         else:
-            return self.db[self.subkey(key)]
+            return self._db[self.subkey(key)]
 
     def __contains__(self, key):
-        return self.subkey(key) in self.db
+        return self.subkey(key) in self._db
 
     def __copy__(self):
         """
         Simple copy of sublevel - same db, prefix, and delimeter
         """
-        return type(self)(self.db, self.prefix, self.delim)
+        return type(self)(self._db, self.prefix, self.delim)
 
     def items(self, key_from='', key_to='~', *args, **kwargs):
         """iterate over all items in the sublevel"""
         key_from = self.subkey(key_from)
         key_to = self.subkey(key_to)
-        yield from self.db.items(key_from=key_from,
-                                 key_to=key_to,
-                                 *args,
-                                 **kwargs)
+        yield from self._db.items(key_from=key_from,
+                                  key_to=key_to,
+                                  *args,
+                                  **kwargs)
 
     def subkey(self, key):
         if key is None:
@@ -62,4 +62,4 @@ class View(LevelReader):
         return self.key_transform(key)
 
     def view(self, prefix):
-        return View(self.db, self.key_transform(prefix), self.delim)
+        return View(self._db, self.key_transform(prefix), self.delim)

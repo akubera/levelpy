@@ -2,8 +2,8 @@
 # levelpy/db_accessors.py
 #
 
-from .batch_context import BatchContext
 from numbers import Number
+from .serializer import Serializer
 
 
 class LevelAccessor:
@@ -15,9 +15,22 @@ class LevelAccessor:
     _prefix = b''
     _delim = b''
 
-    def __init__(self, prefix, delim):
+    def __init__(self, prefix, delim, value_encoding='utf8'):
         self.prefix = prefix
         self.delim = delim
+
+        if isinstance(value_encoding, str):
+            self.encode = Serializer.encode[value_encoding]
+            self.decode = Serializer.decode[value_encoding]
+
+        elif isinstance(value_encoding, (tuple, list)):
+            if not all(map(callable, value_encoding)):
+                raise TypeError
+            self.encode, self.decode = value_encoding
+
+        else:
+            raise TypeError("value_encoding must be a string or"
+                            "encoding/decoding function tuple.")
 
     def key_transform(self, key):  # -> bytes
         """
@@ -78,8 +91,8 @@ class LevelReader(LevelAccessor):
 
     _range_ending = b'~'
 
-    def __init__(self, prefix, delim):
-        LevelAccessor.__init__(self, prefix, delim)
+    def __init__(self, prefix, delim, value_encoding='utf8'):
+        LevelAccessor.__init__(self, prefix, delim, value_encoding)
 
     def value_decode(self, byte_str: bytes):
         return self.decode(byte_str)
@@ -138,6 +151,9 @@ class LevelReader(LevelAccessor):
         stop = key + self._range_ending
         return key in self.keys(key_from=key, key_to=stop)
 
+    def Get(self, key):
+        return self._db.Get(key)
+
 
 class LevelWriter(LevelAccessor):
     """
@@ -164,4 +180,11 @@ class LevelWriter(LevelAccessor):
         self.Delete(key)
 
     def write_batch(self):
+        from .batch_context import BatchContext
         return BatchContext(self)
+
+    def Put(self, key, value):
+        return self._db.Put(key, value)
+
+    def Delete(self, key):
+        return self._db.Delete(key)

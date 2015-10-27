@@ -31,7 +31,7 @@ def context(mock_db):
 
 def test_constructor(context, mock_db, mock_write_batch):
     assert context is not None
-    assert context.db is mock_db
+    assert context._db is mock_db
     assert context.batch is mock_write_batch
 
 

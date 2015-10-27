@@ -36,7 +36,7 @@ def sub(db, key, delim):
 
 def test_constructor(sub, db, key, delim):
     assert isinstance(sub, Sublevel)
-    assert sub.db is db
+    assert sub._db is db
     assert sub.prefix is key
     assert sub.delim is delim
 
@@ -92,7 +92,7 @@ def test_del_item(sub, db, k_d):
 
 def test_copy(sub, db, key, delim):
     cp = copy(sub)
-    assert cp.db is db
+    assert cp._db is db
     assert cp.prefix is key
     assert cp.delim is delim
 
@@ -101,7 +101,7 @@ def test_create_sublevel(sub, db, k_d):
     key = 'a'
     a = sub.sublevel(key)
     expected_prefix = k_d + b'a'
-    assert a.db is db
+    assert a._db is db
     assert a.prefix == expected_prefix
 
 

@@ -36,7 +36,7 @@ def view(db, key, delim):
 
 def test_constructor(view, db, key, delim):
     assert isinstance(view, View)
-    assert view.db is db
+    assert view._db is db
     assert view.prefix is key
     assert view.delim is delim
 
@@ -80,7 +80,7 @@ def test_get_slice_with_collection(view, db, k_d, input, args):
 
 def test_copy(view, db, key, delim):
     cp = copy(view)
-    assert cp.db is db
+    assert cp._db is db
     assert cp.prefix is key
     assert cp.delim is delim
 
@@ -89,7 +89,7 @@ def test_create_view(view, db, k_d):
     key = 'a'
     a = view.view(key)
     expected_prefix = k_d + b'a'
-    assert a.db is db
+    assert a._db is db
     assert a.prefix == expected_prefix
 
 

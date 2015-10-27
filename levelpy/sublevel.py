@@ -7,7 +7,7 @@ from .db_accessors import (
     LevelReader,
     LevelWriter,
 )
-from .serializer import Serializer
+from .view import View
 
 
 class Sublevel(LevelReader, LevelWriter):
@@ -23,20 +23,8 @@ class Sublevel(LevelReader, LevelWriter):
 
     def __init__(self, db, prefix, delim='!', value_encoding='utf8'):
 
-        LevelAccessor.__init__(self, prefix, delim)
-
-        self.db = db
-
-        if isinstance(value_encoding, str):
-            self.encode = Serializer.encode[value_encoding]
-            self.decode = Serializer.decode[value_encoding]
-
-        elif isinstance(value_encoding, (tuple, list)):
-            if not all(callable, value_encoding):
-                raise TypeError
-            self.encode, self.decode = value_encoding
-        else:
-            raise TypeError
+        LevelAccessor.__init__(self, prefix, delim, value_encoding)
+        self._db = db
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -44,41 +32,45 @@ class Sublevel(LevelReader, LevelWriter):
                 raise ValueError("Step values are not available for "
                                  "slices in levelpy")
             start, stop = self.subkey(key.start), self.subkey(key.stop)
-            return self.db[start:stop]
+            return self._db[start:stop]
         elif isinstance(key, (tuple, list, set)):
             t = type(key)
-            return self.db[t(self.subkey(k) for k in key)]
+            return self._db[t(self.subkey(k) for k in key)]
         else:
-            return self.db[self.subkey(key)]
+            return self._db[self.subkey(key)]
 
     def __setitem__(self, key, value):
-        self.db[self.subkey(key)] = value
+        self._db[self.subkey(key)] = value
 
     def __delitem__(self, key):
-        del self.db[self.subkey(key)]
+        del self._db[self.subkey(key)]
 
     def __contains__(self, key):
-        return self.subkey(key) in self.db
+        return self.subkey(key) in self._db
 
     def __copy__(self):
         """
         Simple copy of sublevel - same db, prefix, and delimeter
         """
-        return type(self)(self.db, self.prefix, self.delim)
+        return type(self)(self._db, self.prefix, self.delim)
 
     def items(self, key_from='', key_to='~', *args, **kwargs):
         """iterate over all items in the sublevel"""
         key_from = self.subkey(key_from)
         key_to = self.subkey(key_to)
-        yield from self.db.items(key_from=key_from,
-                                 key_to=key_to,
-                                 *args,
-                                 **kwargs)
+        yield from self._db.items(key_from=key_from,
+                                  key_to=key_to,
+                                  *args,
+                                  **kwargs)
 
     def subkey(self, key):
         if key is None:
             return None
         return self._key_prefix + self.byteify(key)
 
-    def sublevel(self, key):
-        return Sublevel(self.db, self.subkey(key), self.delim)
+    def sublevel(self, key, delim=None):
+        delim = self.delim if (delim is None) else delim
+        return Sublevel(self._db, self.subkey(key), delim=delim)
+
+    def view(self, key):
+        return View(self._db, self.subkey(key), self.delim)
