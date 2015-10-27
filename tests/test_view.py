@@ -1,11 +1,11 @@
 #
-# tests/test_leveldb.py
+# tests/test_view.py
 #
 
 from copy import copy
 import pytest
 from unittest import mock
-from levelpy.sublevel import Sublevel
+from levelpy.view import View
 from levelpy.leveldb import LevelDB
 
 
@@ -30,42 +30,42 @@ def db():
 
 
 @pytest.fixture
-def sub(db, key, delim):
-    return Sublevel(db, key, delim)
+def view(db, key, delim):
+    return View(db, key, delim)
 
 
-def test_constructor(sub, db, key, delim):
-    assert isinstance(sub, Sublevel)
-    assert sub._db is db
-    assert sub.prefix is key
-    assert sub.delim is delim
+def test_constructor(view, db, key, delim):
+    assert isinstance(view, View)
+    assert view._db is db
+    assert view.prefix is key
+    assert view.delim is delim
 
 
-def test_get_item(sub, db, k_d):
-    sub['a']
+def test_get_item(view, db, k_d):
+    view['a']
     db.__getitem__.assert_called_with(k_d + b'a')
 
 
-def test_get_slice(sub, db, k_d):
-    sub['a':'b']
+def test_get_slice(view, db, k_d):
+    view['a':'b']
     db.__getitem__.assert_called_with(slice(k_d + b'a', k_d + b'b'))
 
 
-def test_get_slice_with_start(sub, db, k_d):
+def test_get_slice_with_start(view, db, k_d):
     key = '1'
-    sub[key:]
-    db.__getitem__.assert_called_with(slice(k_d + b'1', None))
+    view[key:]
+    db.__getitem__.assert_called_with(slice(k_d+b'1', None))
 
 
-def test_get_slice_with_stop(sub, db, k_d):
+def test_get_slice_with_stop(view, db, k_d):
     key = '1'
-    sub[:key]
+    view[:key]
     db.__getitem__.assert_called_with(slice(None, k_d + b'1'))
 
 
-def test_get_bad_slice(sub, db, k_d):
+def test_get_bad_slice(view, db, k_d):
     with pytest.raises(ValueError):
-        sub['a':'b':2]
+        view['a':'b':2]
 
 
 @pytest.mark.parametrize('input, args', [
@@ -73,62 +73,50 @@ def test_get_bad_slice(sub, db, k_d):
     (['1', '2'], [b'A!1', b'A!2']),
     ({'1', '2'}, {b'A!1', b'A!2'}),
 ])
-def test_get_slice_with_collection(sub, db, k_d, input, args):
-    sub[input]
+def test_get_slice_with_collection(view, db, k_d, input, args):
+    view[input]
     db.__getitem__.assert_called_with(args)
 
 
-def test_set_item(sub, db, k_d):
-    key = 'a'
-    sub[key] = 90
-    db.__setitem__.assert_called_with(k_d + b'a', 90)
-
-
-def test_del_item(sub, db, k_d):
-    key = 'a'
-    del sub[key]
-    db.__delitem__.assert_called_with(k_d + b'a')
-
-
-def test_copy(sub, db, key, delim):
-    cp = copy(sub)
+def test_copy(view, db, key, delim):
+    cp = copy(view)
     assert cp._db is db
     assert cp.prefix is key
     assert cp.delim is delim
 
 
-def test_create_sublevel(sub, db, k_d):
+def test_create_view(view, db, k_d):
     key = 'a'
-    a = sub.sublevel(key)
+    a = view.view(key)
     expected_prefix = k_d + b'a'
     assert a._db is db
     assert a.prefix == expected_prefix
 
 
-def test_items(sub, db, k_d):
+def test_items(view, db, k_d):
     start, stop = k_d, k_d + b"~"
-    for i in sub.items():
+    for i in view.items():
         pass
     db.items.assert_called_with(key_from=start, key_to=stop)
 
 
-def test_contains(sub, db, k_d):
+def test_contains(view, db, k_d):
     key = 'a'
-    key in sub
+    key in view
     assert db.__contains__.called_with(k_d + b'a')
 
 
-def test_keys(sub, db, k_d):
-    for x in sub.keys():
+def test_keys(view, db, k_d):
+    for x in view.keys():
         pass
     db.items.assert_called_with(include_value=False,
                                 key_from=k_d,
-                                key_to=k_d + b'~')
+                                key_to=k_d+b'~')
 
 
-def test_values(sub, db, k_d):
-    for x in sub.values():
+def test_values(view, db, k_d):
+    for x in view.values():
         pass
     db.items.assert_called_with(include_value=True,
                                 key_from=k_d,
-                                key_to=k_d + b'~')
+                                key_to=k_d+b'~')

@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 def NormalizeBackend(wrapper, db):
     full_classname = "%s.%s" % (db.__class__.__module__, db.__class__.__name__)
 
-    log.debug('NormalizeBackend: %s' % (full_classname))
+    print('NormalizeBackend: %s' % (full_classname))
 
     # get the function to normalize
     normalizer = {
@@ -28,12 +28,35 @@ def NormalizeBackend(wrapper, db):
 
 
 def py_leveldb(wrapper, db):
-    from leveldb import WriteBatch
+
+    import leveldb
+
     if hasattr(db, 'WriteBatch'):
         wrapper.WriteBatch = db.WriteBatch
     else:
-        wrapper.WriteBatch = lambda: WriteBatch()
+        wrapper.WriteBatch = leveldb.WriteBatch
+
+    wrapper.Get = db.Get
+    wrapper.Put = db.Put
+    wrapper.Delete = db.Delete
+    wrapper.Write = db.Write
+    wrapper.RangeIter = db.RangeIter
+    wrapper.GetStats = db.GetStats
+    wrapper.CreateSnapshot = db.CreateSnapshot
+
+    wrapper.DestroyDB = leveldb.DestroyDB
+    wrapper.RepairDB = leveldb.RepairDB
+    wrapper.Snapshot = leveldb.Snapshot
 
 
 def plyvel_database(wrapper, db):
     log.debug('plyvel_database: %s' % (db))
+
+    import plyvel
+
+    wrapper.DestroyDB = plyvel.destroy_db
+
+    wrapper.Get = db.get
+    wrapper.Put = db.put
+    wrapper.Delete = db.delete
+    wrapper.Write = None
