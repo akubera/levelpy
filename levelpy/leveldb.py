@@ -3,8 +3,9 @@
 #
 
 from .leveldb_module_shims import NormalizeBackend
-from .db_accessors import (LevelReader, LevelWriter)
+from .db_accessors import (LevelAccessor, LevelReader, LevelWriter)
 from .sublevel import Sublevel
+# from .view import View
 
 
 class LevelDB(LevelReader, LevelWriter):
@@ -66,9 +67,9 @@ class LevelDB(LevelReader, LevelWriter):
             self._leveldb_cls = self._db.__class__
             self._leveldb_pkg = self._leveldb_cls.__module__
 
-        NormalizeBackend(self, self._db)
+        LevelAccessor.__init__(self, '', '', value_encoding)
 
-        # LevelReader.__init__(self, b'', b'', value_encoding)
+        NormalizeBackend(self, self._db)
 
         def update_attr(name, items):
             if hasattr(self, name):
@@ -84,14 +85,6 @@ class LevelDB(LevelReader, LevelWriter):
         Shallow copy of database - reusing the current instance connection
         """
         return type(self)(self._db)
-
-    def decode(self, b):
-        return b.decode(self.str_encoding)
-
-    def encode(self, obj):
-        if isinstance(obj, str):
-            return obj.encode(self.str_encoding)
-        return bytes(obj)
 
     def batch(self):
         return self.write_batch()
@@ -109,4 +102,4 @@ class LevelDB(LevelReader, LevelWriter):
         """
         Generate a sublevel with prefix key.
         """
-        return Sublevel(self, key, delim)
+        return Sublevel(self, key, delim=delim)
