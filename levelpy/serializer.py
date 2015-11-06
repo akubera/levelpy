@@ -14,11 +14,16 @@ def json_decode(byte_str):
 
 
 def utf8_encode(obj):
-    return json_encode(obj)
+    if isinstance(obj, bytes):
+        return obj
+    elif isinstance(obj, bytearray):
+        return bytes(obj)
+    else:
+        return str(obj).encode('utf8')
 
 
 def utf8_decode(byte_str):
-    return json_decode(byte_str)
+    return byte_str.decode('utf8')
 
 
 def binary_encode(byte_str):
@@ -50,6 +55,7 @@ class Serializer:
     transform_dict = {
         'json': (json_encode, json_decode),
         'utf8': (utf8_encode, utf8_decode),
+        'utf-8': (utf8_encode, utf8_decode),
         'bin': (binary_encode, binary_decode),
         'none': (binary_encode, binary_decode),
         'msgpack': (MsgPackSerializer.encode, MsgPackSerializer.decode)
@@ -60,3 +66,8 @@ class Serializer:
 
     def __init__(self, method='utf-8'):
         self.pack, self.unpack = self.transform_dict[method]
+
+    @classmethod
+    def update(cls):
+        cls.encode = {k: v[0] for k, v in cls.transform_dict.items()}
+        cls.decode = {k: v[1] for k, v in cls.transform_dict.items()}

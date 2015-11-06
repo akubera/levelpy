@@ -162,25 +162,14 @@ def test_batch_context_type(db, mock_leveldb_backend, mock_WriteBatch):
 
 
 def test_batch(db, mock_leveldb_backend, mock_WriteBatch):
-    batch = db.batch()
-    assert batch.batch is mock_WriteBatch
-
-    # ctx = batch.__enter__()
-    # assert ctx.Put is mock_WriteBatch.Put
-    # assert ctx.Delete is mock_WriteBatch.Delete
-
-
-def test_batch_context(db, mock_leveldb_backend, mock_WriteBatch):
     with db.batch() as ctx:
         ctx['1'] = '0'
-
-
 
     mock_WriteBatch.Put.assert_called_with(b'1', b'0')
     mock_leveldb_backend.Write.called_with(mock_WriteBatch, False)
 
 
-def xtest_batch_exception(db, mock_leveldb_backend, mock_WriteBatch):
+def test_batch_exception(db, mock_leveldb_backend, mock_WriteBatch):
 
     with pytest.raises(Exception):
         with db.batch() as ctx:
@@ -211,12 +200,4 @@ def test_create_sublevel(db, mock_leveldb_backend):
     a = db.sublevel('a')
     assert a._db is db
     assert a.prefix == b'a'
-    assert a.delim == b'!'
     assert a._key_prefix == b'a!'
-
-
-def test_create_sublevel_with_delim(db, mock_leveldb_backend):
-    a = db.sublevel('a', 'X')
-    assert a._db is db
-    assert a.prefix == b'a'
-    assert a._key_prefix == b'aX'

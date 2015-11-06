@@ -20,6 +20,8 @@ def mock_db(mock_write_batch):
     db = mock.MagicMock(spec=levelpy.leveldb.LevelDB,
                         WriteBatch=lambda: mock_write_batch)
     db.Write = mock.Mock()
+    db.encode = lambda x: x
+    db.decode = lambda x: x
     return db
 
 

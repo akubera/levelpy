@@ -91,9 +91,6 @@ class LevelReader(LevelAccessor):
 
     _range_ending = b'~'
 
-    def __init__(self, prefix, delim, value_encoding='utf8'):
-        LevelAccessor.__init__(self, prefix, delim, value_encoding)
-
     def value_decode(self, byte_str: bytes):
         return self.decode(byte_str)
 
@@ -127,10 +124,7 @@ class LevelReader(LevelAccessor):
     def items(self, *args, **kwargs):
 
         def transform(obj):
-            if isinstance(obj, tuple):
-                return (bytes(obj[0]), self.value_decode(obj[1]))
-            else:
-                return self.value_decode(obj)
+            return (bytes(obj[0]), self.value_decode(obj[1]))
 
         if 'include_value' in kwargs and kwargs['include_value'] is False:
             yield from map(bytes, self.RangeIter(*args, **kwargs))
