@@ -15,7 +15,7 @@ and pythonic interface to the lower level database.
 one as a dependency. It is up to YOU to choose and install such a package.**
 
 In addition to the pythonic interface, LevelPy database objects adhere to the
-LevelDB_API_, which uses uppercase methods such as 'Get'. Any objects which
+`LevelDB API`_, which uses uppercase methods such as 'Get'. Any objects which
 provide this interface interacts directly to the underlying database object,
 so these expect python bytes objects for keys and values.
 
@@ -148,4 +148,4 @@ to custom serializations. It is recommended to call Serializer.update() after
 modifying the transform_dict, which updates the Serializer's encode and decode
 dictionaries.
 
-.. LevelDB_API: http://leveldb.googlecode.com/svn/trunk/doc/index.html
+.. _LevelDB API: http://leveldb.googlecode.com/svn/trunk/doc/index.html
