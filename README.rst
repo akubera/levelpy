@@ -14,6 +14,11 @@ and pythonic interface to the lower level database.
 **LevelPy alone does *NOT* provide access to a database, nor does it declare
 one as a dependency. It is up to YOU to choose and install such a package.**
 
+In addition to the pythonic interface, LevelPy database objects adhere to the
+LevelDB_API_, which uses uppercase methods such as 'Get'. Any objects which
+provide this interface interacts directly to the underlying database object,
+so these expect python bytes objects for keys and values.
+
 
 Usage
 -----
@@ -98,3 +103,49 @@ values(), which provides generators to iterate over the expected items.
 
   for k, v in db.items():
       print(k, '->', v)
+
+
+Views
+~~~~~
+
+Views are read-only structures that are built with a prefix which is
+automatically added to any request. Views may contain other views, creating
+smaller slices of the full database.
+
+Views provide the levelpy reading-interface: get and iteration.
+
+
+Sublevels
+~~~~~~~~~
+
+Sublevels are like views but provide full read-write support to the database.
+The user may create sublevels within a sublevel for more specific requests.
+Views may be created from sublevels, but a sublevel cannot be created from a
+view, as they are read only.
+
+
+Serializer
+~~~~~~~~~
+
+LevelDB requires keys and values in the database to be python byte objects, so
+all other types (such as strings) must be encoded to bytes upon request or
+storage. LevelPy provides a serialization module with functions that implement
+various encoding/decoding schemes. Most LevelPy database objects have a
+value_encoding parameter in the constructor; if this is a string, it searches
+the Serializer.transform_dict dictionary for the encode/decode pair with the
+string. Alternatively, you can supply a tuple of 2 callables which encode
+incoming objects to bytes, and decode bytes into objects. This, mixed with
+sublevels, provide an excelent method to store countless different types in
+a single database, with automatic type retrieval.
+
+By default the Serializer provides string encoding ("utf8"), trivial binary
+encoding ("bin"), arbitrary json object encoding for dicts ("json"), and the
+more efficient msgpack serialization library ("msgpack", must be installed
+seperately)
+
+Custom serialization keys may be added to the transform_dict, for easy access
+to custom serializations. It is recommended to call Serializer.update() after
+modifying the transform_dict, which updates the Serializer's encode and decode
+dictionaries.
+
+.. LevelDB_API: http://leveldb.googlecode.com/svn/trunk/doc/index.html
