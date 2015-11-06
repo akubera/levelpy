@@ -27,6 +27,7 @@ PACKAGES = find_packages(
 
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Topic :: Database",
     "Programming Language :: Python",
