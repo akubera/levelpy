@@ -2,7 +2,7 @@
 LevelPy
 =======
 
-A pythonic interface to the LevelDB database.
+A pythonic interface to the `LevelDB`_ database.
 
 About
 -----
@@ -16,8 +16,8 @@ one as a dependency. It is up to YOU to choose and install such a package.**
 
 In addition to the pythonic interface, LevelPy database objects adhere to the
 `LevelDB API`_, which uses uppercase methods such as 'Get'. Any objects which
-provide this interface interacts directly to the underlying database object,
-so these expect python bytes objects for keys and values.
+provide this interface interacts directly to the underlying database object, so
+these expect python bytes objects for keys and values.
 
 
 Usage
@@ -88,7 +88,7 @@ dict-interface to the database (using the [] operators).
 
   has_5 = '5' in db  # tests if '5' is a key in the database
 
-As mentioned in Constructor_, such access is also provided by the ``Get`` &
+As mentioned in Constructor, such access is also provided by the ``Get`` &
 ``Put`` members.
 
 Iteration
@@ -105,8 +105,23 @@ values(), which provides generators to iterate over the expected items.
       print(k, '->', v)
 
 
+Classes
+~~~~~~~
+
+Levelpy introduces some specialized classes to solve common problems while
+working with the database.
+
+
+LevelDB
+^^^^^^^
+
+LevelDB is the main class responsible for loading and querying the database.
+A "real" leveldb library/class must be used to actually handle the file io.
+To make your own, simply write a class that implements the LevelDB API.
+
+
 Views
-~~~~~
+^^^^^
 
 Views are read-only structures that are built with a prefix which is
 automatically added to any request. Views may contain other views, creating
@@ -116,16 +131,19 @@ Views provide the levelpy reading-interface: get and iteration.
 
 
 Sublevels
-~~~~~~~~~
+^^^^^^^^^
 
 Sublevels are like views but provide full read-write support to the database.
 The user may create sublevels within a sublevel for more specific requests.
 Views may be created from sublevels, but a sublevel cannot be created from a
 view, as they are read only.
 
+Sublevels provide the levelpy read and write interfaces: get, put, delete,
+iteration, batch writes.
+
 
 Serializer
-~~~~~~~~~
+^^^^^^^^^^
 
 LevelDB requires keys and values in the database to be python byte objects, so
 all other types (such as strings) must be encoded to bytes upon request or
@@ -148,4 +166,6 @@ to custom serializations. It is recommended to call Serializer.update() after
 modifying the transform_dict, which updates the Serializer's encode and decode
 dictionaries.
 
+
+.. _LevelDB: http://leveldb.org/
 .. _LevelDB API: http://leveldb.googlecode.com/svn/trunk/doc/index.html
