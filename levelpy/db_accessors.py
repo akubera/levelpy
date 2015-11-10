@@ -22,11 +22,13 @@ class LevelAccessor:
         if isinstance(value_encoding, str):
             self.encode = Serializer.encode[value_encoding]
             self.decode = Serializer.decode[value_encoding]
+            self.value_encoding_str = value_encoding
 
         elif isinstance(value_encoding, (tuple, list)):
             if not all(map(callable, value_encoding)):
                 raise TypeError
             self.encode, self.decode = value_encoding
+            self.value_encoding_str = None
 
         else:
             raise TypeError("value_encoding must be a string or"
@@ -39,6 +41,14 @@ class LevelAccessor:
         key with the accessor's prefix and delimiter.
         """
         return self._key_prefix + self.byteify(key)
+
+    def subkey(self, key):
+        """
+        Equivalent to key_transform, but returns None if parameter is None
+        """
+        if key is None:
+            return None
+        return self.key_transform(key)
 
     @property
     def _key_prefix(self):

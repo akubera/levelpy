@@ -56,10 +56,16 @@ class View(LevelReader):
                                   *args,
                                   **kwargs)
 
-    def subkey(self, key):
-        if key is None:
-            return None
-        return self.key_transform(key)
+    def view(self, key, delim=None, value_encoding=None):
+        delim = self.delim if (delim is None) else delim
 
-    def view(self, prefix):
-        return View(self._db, self.key_transform(prefix), self.delim)
+        if value_encoding is not None:
+            enc = value_encoding
+        else:
+            enc = (self.encode, self.decode)
+
+        return View(self._db,
+                    self.key_transform(key),
+                    delim=delim,
+                    value_encoding=enc,
+                    )

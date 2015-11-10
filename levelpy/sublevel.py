@@ -22,7 +22,6 @@ class Sublevel(LevelReader, LevelWriter):
     """
 
     def __init__(self, db, prefix, delim='!', value_encoding='utf8'):
-
         LevelAccessor.__init__(self, prefix, delim, value_encoding)
         self._db = db
 
@@ -63,14 +62,23 @@ class Sublevel(LevelReader, LevelWriter):
                                   *args,
                                   **kwargs)
 
-    def subkey(self, key):
-        if key is None:
-            return None
-        return self._key_prefix + self.byteify(key)
-
-    def sublevel(self, key, delim=None):
+    def sublevel(self, key, delim=None, value_encoding='utf-8'):
+        """
+        Return a sublevel of the sublevel
+        """
         delim = self.delim if (delim is None) else delim
-        return Sublevel(self._db, self.subkey(key), delim=delim)
+        return Sublevel(self._db,
+                        self.key_transform(key),
+                        delim=delim,
+                        value_encoding=value_encoding)
 
-    def view(self, key):
-        return View(self._db, self.subkey(key), self.delim)
+    def view(self, key, delim=None, value_encoding=None):
+        """
+        Return a read-only view of the sublevel
+        """
+        delim = self.delim if (delim is None) else delim
+        enc = self.value_encoding if (value_encoding is None) else value_encoding
+        return View(self._db,
+                    self.key_transform(key),
+                    delim=delim,
+                    value_encoding=enc)
