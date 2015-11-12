@@ -38,9 +38,6 @@ class View(LevelReader):
         else:
             return self._db[self.subkey(key)]
 
-    def __contains__(self, key):
-        return self.subkey(key) in self._db
-
     def __copy__(self):
         """
         Simple copy of sublevel - same db, prefix, and delimeter

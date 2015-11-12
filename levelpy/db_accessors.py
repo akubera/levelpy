@@ -114,19 +114,18 @@ class LevelReader(LevelAccessor):
         return self.value_decode(value_bytes)
 
     def __getitem__(self, key):
-
         if isinstance(key, slice):
             if key.step is not None:
                 raise ValueError("Step is not available for levelpy slices")
 
             # Note - if None, these should remain None
-            start, stop = map(self.byteify, (key.start, key.stop))
+            start, stop = map(self.subkey, (key.start, key.stop))
 
             return self.RangeIter(key_from=start, key_to=stop)
 
         elif isinstance(key, (tuple, list, set)):
             t = type(key)
-            return t(self[k] for k in key)
+            return t(map(self.__getitem__, key))
 
         else:
             return self.get(key)
@@ -158,6 +157,8 @@ class LevelReader(LevelAccessor):
     def Get(self, key):
         return self._db.Get(key)
 
+    def RangeIter(self, *args, **kwargs):
+        return self._db.RangeIter(*args, **kwargs)
 
 class LevelWriter(LevelAccessor):
     """

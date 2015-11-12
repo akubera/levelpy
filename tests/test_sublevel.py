@@ -43,24 +43,23 @@ def test_constructor(sub, db, key, delim):
 
 def test_get_item(sub, db, k_d):
     sub['a']
-    db.__getitem__.assert_called_with(k_d + b'a')
+    db.Get.assert_called_with(k_d + b'a')
 
 
 def test_get_slice(sub, db, k_d):
     sub['a':'b']
-    db.__getitem__.assert_called_with(slice(k_d + b'a', k_d + b'b'))
+    db.RangeIter.assert_called_with(key_from=k_d + b'a', key_to=k_d + b'b')
 
 
 def test_get_slice_with_start(sub, db, k_d):
     key = '1'
     sub[key:]
-    db.__getitem__.assert_called_with(slice(k_d + b'1', None))
+    db.RangeIter.assert_called_with(key_from=k_d + b'1', key_to=None)
 
 
 def test_get_slice_with_stop(sub, db, k_d):
-    key = '1'
-    sub[:key]
-    db.__getitem__.assert_called_with(slice(None, k_d + b'1'))
+    sub[:'1']
+    db.RangeIter.assert_called_with(key_from=None, key_to=k_d + b'1')
 
 
 def test_get_bad_slice(sub, db, k_d):
@@ -71,23 +70,28 @@ def test_get_bad_slice(sub, db, k_d):
 @pytest.mark.parametrize('input, args', [
     (('1', '2', '3'), (b'A!1', b'A!2', b'A!3')),
     (['1', '2'], [b'A!1', b'A!2']),
-    ({'1', '2'}, {b'A!1', b'A!2'}),
+    ({'1', '2'}, (b'A!1', b'A!2')),
 ])
-def test_get_slice_with_collection(sub, db, k_d, input, args):
-    sub[input]
-    db.__getitem__.assert_called_with(args)
-
+def test_get_with_collection(sub, db, k_d, input, args):
+    ret = sub[input]
+    assert type(ret) == type(input)
+    expected_args = [((a,),) for a in args]
+    # 'set' is special case - unknown call order
+    if isinstance(input, set):
+        assert all(c in expected_args for c in db.Get.call_args_list)
+    else:
+        assert db.Get.call_args_list == expected_args
 
 def test_set_item(sub, db, k_d):
     key = 'a'
     sub[key] = 90
-    db.__setitem__.assert_called_with(k_d + b'a', 90)
+    db.Put.assert_called_with(k_d + b'a', b'90')
 
 
 def test_del_item(sub, db, k_d):
     key = 'a'
     del sub[key]
-    db.__delitem__.assert_called_with(k_d + b'a')
+    db.Delete.assert_called_with(k_d + b'a')
 
 
 def test_copy(sub, db, key, delim):

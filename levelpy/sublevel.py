@@ -25,28 +25,6 @@ class Sublevel(LevelReader, LevelWriter):
         LevelAccessor.__init__(self, prefix, delim, value_encoding)
         self._db = db
 
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            if key.step is not None:
-                raise ValueError("Step values are not available for "
-                                 "slices in levelpy")
-            start, stop = self.subkey(key.start), self.subkey(key.stop)
-            return self._db[start:stop]
-        elif isinstance(key, (tuple, list, set)):
-            t = type(key)
-            return self._db[t(self.subkey(k) for k in key)]
-        else:
-            return self._db[self.subkey(key)]
-
-    def __setitem__(self, key, value):
-        self._db[self.subkey(key)] = value
-
-    def __delitem__(self, key):
-        del self._db[self.subkey(key)]
-
-    def __contains__(self, key):
-        return self.subkey(key) in self._db
-
     def __copy__(self):
         """
         Simple copy of sublevel - same db, prefix, and delimeter
