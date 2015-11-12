@@ -136,3 +136,40 @@ def test_values(sub, db, k_d):
     db.items.assert_called_with(include_value=True,
                                 key_from=k_d,
                                 key_to=k_d + b'~')
+
+
+def test_custom_encoder(db, key, delim, k_d):
+
+    def encode_number(num):
+        n_type = ('i' if isinstance(num, int) else
+                  'f' if isinstance(num, float) else
+                  '?')
+        return (n_type + "%d" % num).encode()
+
+    def decode_number(bytestr):
+        typecode, *num_val = bytestr.decode()
+        num_val = ''.join(num_val)
+        n_type = {
+            'i': int,
+            'f': float,
+            '?': float,
+        }.get(typecode)
+        return n_type(num_val)
+
+    sub = Sublevel(db, key, delim, value_encoding=(encode_number, decode_number))
+    assert sub.encode is encode_number
+    assert sub.decode is decode_number
+
+    sub['foo'] = 20
+    db.Put.assert_called_with(k_d + b'foo', b'i20')
+
+    sub['bar'] = 42.4
+    db.Put.assert_called_with(k_d + b'bar', b'f42')
+
+    db.Get.return_value = b'i20'
+    twenty = sub['foo']
+    assert twenty == 20 and isinstance(twenty, int)
+
+    db.Get.return_value = b'f42'
+    twenty = sub['bar']
+    assert twenty == 42.0 and isinstance(twenty, float)
