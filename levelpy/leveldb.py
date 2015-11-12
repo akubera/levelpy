@@ -114,15 +114,11 @@ class LevelDB(LevelReader, LevelWriter):
                         )
 
     def view(self, key, delim=None, value_encoding=None):
+        prefix = self.key_transform(key)
         delim = self.delim if (delim is None) else delim
-
-        if value_encoding is not None:
-            enc = value_encoding
-        else:
-            enc = (self.encode, self.decode)
-
+        enc = self._get_encoding(value_encoding)
         return View(self._db,
-                    self.key_transform(key),
+                    prefix,
                     delim=delim,
                     value_encoding=enc,
                     )

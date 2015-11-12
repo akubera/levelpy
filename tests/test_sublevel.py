@@ -110,6 +110,14 @@ def test_create_sublevel(sub, db, k_d):
     assert a.prefix == expected_prefix
 
 
+def test_create_view(sub, db, k_d):
+    key = 'a'
+    a = sub.view(key)
+    expected_prefix = k_d + b'a'
+    assert a._db is db
+    assert a.prefix == expected_prefix
+
+
 def test_items(sub, db, k_d):
     start, stop = k_d, k_d + b"~"
     for i in sub.items():

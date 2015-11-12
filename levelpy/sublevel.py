@@ -40,23 +40,26 @@ class Sublevel(LevelReader, LevelWriter):
                                   *args,
                                   **kwargs)
 
-    def sublevel(self, key, delim=None, value_encoding='utf-8'):
+    def sublevel(self, key, delim=None, value_encoding=None):
         """
         Return a sublevel of the sublevel
         """
+        prefix = self.key_transform(key)
         delim = self.delim if (delim is None) else delim
+        enc = self._get_encoding(value_encoding)
         return Sublevel(self._db,
-                        self.key_transform(key),
+                        prefix,
                         delim=delim,
-                        value_encoding=value_encoding)
+                        value_encoding=enc)
 
     def view(self, key, delim=None, value_encoding=None):
         """
         Return a read-only view of the sublevel
         """
+        prefix = self.key_transform(key)
         delim = self.delim if (delim is None) else delim
-        enc = self.value_encoding if (value_encoding is None) else value_encoding
+        enc = self._get_encoding(value_encoding)
         return View(self._db,
-                    self.key_transform(key),
+                    prefix,
                     delim=delim,
                     value_encoding=enc)

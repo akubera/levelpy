@@ -88,6 +88,14 @@ class LevelAccessor:
             else:
                 return bytes(value)
 
+    def _get_encoding(self, value_encoding):
+        if value_encoding is not None:
+            enc = value_encoding
+        elif self.value_encoding_str:
+            enc = self.value_encoding_str
+        else:
+            enc = (self.encode, self.decode)
+        return enc
 
 class LevelReader(LevelAccessor):
     """
