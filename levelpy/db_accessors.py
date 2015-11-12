@@ -101,6 +101,14 @@ class LevelReader(LevelAccessor):
 
     _range_ending = b'~'
 
+    @property
+    def range_begin(self):
+        return self._key_prefix
+
+    @property
+    def range_end(self):
+        return self.subkey(self._range_ending)
+
     def value_decode(self, byte_str: bytes):
         return self.decode(byte_str)
 
@@ -118,8 +126,15 @@ class LevelReader(LevelAccessor):
             if key.step is not None:
                 raise ValueError("Step is not available for levelpy slices")
 
-            # Note - if None, these should remain None
-            start, stop = map(self.subkey, (key.start, key.stop))
+            if key.start is None and self.range_begin != b'':
+                start = self.range_begin
+            else:
+                start = self.subkey(key.start)
+
+            if key.stop is None and self.range_end != self._range_ending:
+                stop = self.range_end
+            else:
+                stop = self.subkey(key.stop)
 
             return self.RangeIter(key_from=start, key_to=stop)
 

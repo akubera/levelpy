@@ -54,12 +54,13 @@ def test_get_slice(sub, db, k_d):
 def test_get_slice_with_start(sub, db, k_d):
     key = '1'
     sub[key:]
-    db.RangeIter.assert_called_with(key_from=k_d + b'1', key_to=None)
+    db.RangeIter.assert_called_with(key_from=k_d + b'1', key_to=sub.range_end)
 
 
 def test_get_slice_with_stop(sub, db, k_d):
     sub[:'1']
-    db.RangeIter.assert_called_with(key_from=None, key_to=k_d + b'1')
+    range_end = k_d + b'1'
+    db.RangeIter.assert_called_with(key_from=sub.range_begin, key_to=range_end)
 
 
 def test_get_bad_slice(sub, db, k_d):
