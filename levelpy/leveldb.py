@@ -98,8 +98,27 @@ class LevelDB(LevelReader, LevelWriter):
     def create_snapshot(self):
         return self.CreateSnapshot()
 
-    def sublevel(self, key, delim=b'!'):
+    def sublevel(self, key, delim=b'!', value_encoding=None):
         """
         Generate a sublevel with prefix key.
         """
-        return Sublevel(self, key, delim=delim)
+        if value_encoding is not None:
+            enc = value_encoding
+        else:
+            enc = (self.encode, self.decode)
+
+        return Sublevel(self,
+                        self.key_transform(key),
+                        delim=delim,
+                        value_encoding=enc,
+                        )
+
+    def view(self, key, delim=None, value_encoding=None):
+        prefix = self.key_transform(key)
+        delim = self.delim if (delim is None) else delim
+        enc = self._get_encoding(value_encoding)
+        return View(self._db,
+                    prefix,
+                    delim=delim,
+                    value_encoding=enc,
+                    )

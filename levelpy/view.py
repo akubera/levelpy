@@ -38,9 +38,6 @@ class View(LevelReader):
         else:
             return self._db[self.subkey(key)]
 
-    def __contains__(self, key):
-        return self.subkey(key) in self._db
-
     def __copy__(self):
         """
         Simple copy of sublevel - same db, prefix, and delimeter
@@ -56,10 +53,16 @@ class View(LevelReader):
                                   *args,
                                   **kwargs)
 
-    def subkey(self, key):
-        if key is None:
-            return None
-        return self.key_transform(key)
+    def view(self, key, delim=None, value_encoding=None):
+        """
+        Return a subview of this view
+        """
+        prefix = self.key_transform(key)
+        delim = self.delim if (delim is None) else delim
+        enc = self._get_encoding(value_encoding)
 
-    def view(self, prefix):
-        return View(self._db, self.key_transform(prefix), self.delim)
+        return View(self._db,
+                    prefix,
+                    delim=delim,
+                    value_encoding=enc,
+                    )

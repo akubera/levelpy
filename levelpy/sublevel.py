@@ -8,7 +8,11 @@ from .db_accessors import (
     LevelWriter,
 )
 from .view import View
-
+from .iterviews import (
+    LevelItems,
+    LevelKeys,
+    LevelValues,
+)
 
 class Sublevel(LevelReader, LevelWriter):
     """
@@ -22,31 +26,8 @@ class Sublevel(LevelReader, LevelWriter):
     """
 
     def __init__(self, db, prefix, delim='!', value_encoding='utf8'):
-
         LevelAccessor.__init__(self, prefix, delim, value_encoding)
         self._db = db
-
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            if key.step is not None:
-                raise ValueError("Step values are not available for "
-                                 "slices in levelpy")
-            start, stop = self.subkey(key.start), self.subkey(key.stop)
-            return self._db[start:stop]
-        elif isinstance(key, (tuple, list, set)):
-            t = type(key)
-            return self._db[t(self.subkey(k) for k in key)]
-        else:
-            return self._db[self.subkey(key)]
-
-    def __setitem__(self, key, value):
-        self._db[self.subkey(key)] = value
-
-    def __delitem__(self, key):
-        del self._db[self.subkey(key)]
-
-    def __contains__(self, key):
-        return self.subkey(key) in self._db
 
     def __copy__(self):
         """
@@ -63,14 +44,26 @@ class Sublevel(LevelReader, LevelWriter):
                                   *args,
                                   **kwargs)
 
-    def subkey(self, key):
-        if key is None:
-            return None
-        return self._key_prefix + self.byteify(key)
-
-    def sublevel(self, key, delim=None):
+    def sublevel(self, key, delim=None, value_encoding=None):
+        """
+        Return a sublevel of the sublevel
+        """
+        prefix = self.key_transform(key)
         delim = self.delim if (delim is None) else delim
-        return Sublevel(self._db, self.subkey(key), delim=delim)
+        enc = self._get_encoding(value_encoding)
+        return Sublevel(self._db,
+                        prefix,
+                        delim=delim,
+                        value_encoding=enc)
 
-    def view(self, key):
-        return View(self._db, self.subkey(key), self.delim)
+    def view(self, key, delim=None, value_encoding=None):
+        """
+        Return a read-only view of the sublevel
+        """
+        prefix = self.key_transform(key)
+        delim = self.delim if (delim is None) else delim
+        enc = self._get_encoding(value_encoding)
+        return View(self._db,
+                    prefix,
+                    delim=delim,
+                    value_encoding=enc)

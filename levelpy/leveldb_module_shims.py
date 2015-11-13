@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 def NormalizeBackend(wrapper, db):
     full_classname = "%s.%s" % (db.__class__.__module__, db.__class__.__name__)
 
-    print('NormalizeBackend: %s' % (full_classname))
+    # log.debug('NormalizeBackend: %s' % (full_classname))
 
     # get the function to normalize
     normalizer = {

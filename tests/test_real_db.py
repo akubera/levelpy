@@ -66,6 +66,16 @@ def test_item_access(db, k, v, expected):
     assert k in db
     assert db[k] == expected
 
+@pytest.mark.parametrize('key, data, expected', (
+  ('needle', {'a': 'b', 'z': 'y'}, False),
+  ('needle', {'a': 'b', 'needle':'haystack', 'r':'t'}, True),
+  ('x', {'a': 'x', 'c': 'd', 'r': 't'}, False),
+))
+def test_contains(db, key, data, expected):
+    for k, v in data.items():
+        db[k] = v
+    assert (key in db) == expected
+
 @pytest.mark.parametrize('data', (
   (
    ('a1', 'VALU'),
@@ -77,10 +87,14 @@ def test_item_iteration(db, data):
     for k, v in data:
         db[k] = v
 
-    l = list(v for k, v in db.items())
+    # l = list(v for k, v in db.items())
+    l = []
+    for k, v in db.items():
+        print(k,'->',v)
+        l.append(v)
 
     assert len(l) is len(data)
-    assert all(a[0] == a[1][1] for a in zip(l, data))
+    assert all([a[0] == a[1][1] for a in zip(l, data)])
 
 
 @pytest.mark.parametrize('slice_, data, expected', (
