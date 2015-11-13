@@ -5,6 +5,7 @@
 import pytest
 from unittest import mock
 import levelpy.leveldb
+from levelpy.iterviews import LevelValues
 
 
 @pytest.fixture
@@ -26,6 +27,14 @@ def mock_leveldb_backend(mock_WriteBatch):
 def test_mock_batch(mock_WriteBatch, mock_leveldb_backend):
     b = mock_leveldb_backend.WriteBatch()
     assert b is mock_WriteBatch
+
+
+@pytest.fixture
+def mock_data():
+    return {
+        b'a': b'1',
+        b'cc': b'101001',
+    }
 
 
 @pytest.fixture
@@ -81,20 +90,26 @@ def test_delitem_strkey(db, mock_leveldb_backend):
 
 def test_get_slice_with_start(db, mock_leveldb_backend):
     db[1:]
-    mock_leveldb_backend.RangeIter.assert_called_with(key_from=b'1',
-                                                      key_to=None)
+    mock_leveldb_backend.RangeIter.assert_called_with(
+        key_from=b'1',
+        key_to=b'~',
+    )
 
 
 def test_get_slice_with_stop(db, mock_leveldb_backend):
     db[:1]
-    mock_leveldb_backend.RangeIter.assert_called_with(key_from=None,
-                                                      key_to=b'1')
+    mock_leveldb_backend.RangeIter.assert_called_with(
+        key_from=b'',
+        key_to=b'1',
+    )
 
 
 def test_get_slice_with_start_stop(db, mock_leveldb_backend):
     db['a':'z']
-    mock_leveldb_backend.RangeIter.assert_called_with(key_from=b'a',
-                                                      key_to=b'z')
+    mock_leveldb_backend.RangeIter.assert_called_with(
+        key_from=b'a',
+        key_to=b'z',
+    )
 
 
 def test_get_slice_with_start_stop_step(db, mock_leveldb_backend):
@@ -117,9 +132,11 @@ def test_contains(db, mock_leveldb_backend):
     key = 'a'
     bkey = 'a'.encode()
     key in db
-    mock_leveldb_backend.RangeIter.assert_called_with(include_value=False,
-                                                      key_from=bkey,
-                                                      key_to=bkey + b'~')
+    mock_leveldb_backend.RangeIter.assert_called_with(
+        include_value=False,
+        key_from=bkey,
+        key_to=bkey + b'~',
+    )
 
 
 def test_items(db):
@@ -134,11 +151,23 @@ def test_keys(db):
     # mock_leveldb_backend.__contains__.assert_called_with('a')
 
 
-def test_values(db, mock_leveldb_backend):
-    mock_leveldb_backend.RangeIter.return_value = [(b'True', b'True')]
-    for x in db.values():
-        assert x == 'True'
-    # mock_leveldb_backend.__contains__.assert_called_with('a')
+def test_values(db, mock_leveldb_backend, mock_data):
+    vals = db.values()
+    expected = mock_data.values()
+    mock_leveldb_backend.RangeIter.return_value = mock_data.items()
+    assert isinstance(vals, LevelValues)
+    for a, b in zip(vals, expected):
+        assert a == b
+
+
+def test_values_reverse(db, mock_leveldb_backend, mock_data):
+    expected = mock_data.values()
+    mock_leveldb_backend.RangeIter.return_value = mock_data.items()
+    vals = db.values()
+    assert isinstance(vals, LevelValues)
+
+    for a, b in zip(vals, expected):
+        assert a == b
 
 
 def test_copy(db, mock_leveldb_backend):
@@ -147,11 +176,6 @@ def test_copy(db, mock_leveldb_backend):
     assert carbon._db is mock_leveldb_backend
     # mock_leveldb_backend.__contains__.assert_called_with('a')
 
-# def test_mock_batch(mock_WriteBatch, mock_leveldb_backend):
-#     b = mock_leveldb_backend.WriteBatch()
-#     assert b is mock_WriteBatch
-#
-#
 
 def test_batch_context_type(db, mock_leveldb_backend, mock_WriteBatch):
     from levelpy.batch_context import BatchContext

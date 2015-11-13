@@ -4,6 +4,11 @@
 
 from numbers import Number
 from .serializer import Serializer
+from .iterviews import (
+    LevelItems,
+    LevelKeys,
+    LevelValues,
+)
 
 
 class LevelAccessor:
@@ -117,6 +122,18 @@ class LevelReader(LevelAccessor):
     def range_end(self):
         return self.subkey(self._range_ending)
 
+    def range_start_key(self, key):
+        if key is None:
+            return self.range_begin
+        else:
+            return self.key_transform(key)
+
+    def range_stop_key(self, key):
+        if key is None:
+            return self.range_end
+        else:
+            return self.key_transform(key)
+
     def value_decode(self, byte_str: bytes):
         return self.decode(byte_str)
 
@@ -134,15 +151,8 @@ class LevelReader(LevelAccessor):
             if key.step is not None:
                 raise ValueError("Step is not available for levelpy slices")
 
-            if key.start is None and self.range_begin != b'':
-                start = self.range_begin
-            else:
-                start = self.subkey(key.start)
-
-            if key.stop is None and self.range_end != self._range_ending:
-                stop = self.range_end
-            else:
-                stop = self.subkey(key.stop)
+            start = self.range_start_key(key.start)
+            stop = self.range_stop_key(key.stop)
 
             return self.RangeIter(key_from=start, key_to=stop)
 
@@ -168,9 +178,11 @@ class LevelReader(LevelAccessor):
         yield from self.items(*args, **kwargs)
 
     def values(self, *args, **kwargs):
-        kwargs['include_value'] = True
-        for k, v in self.items(*args, **kwargs):
-            yield v
+        """
+        """
+        kwargs['key_from'] = self.range_start_key(kwargs.get('key_from', None))
+        kwargs['key_to'] = self.range_stop_key(kwargs.get('key_to', None))
+        return LevelValues(self, *args, **kwargs)
 
     def __contains__(self, key):
         key = self.key_transform(key)

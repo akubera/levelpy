@@ -7,6 +7,9 @@ import pytest
 from unittest import mock
 from levelpy.view import View
 from levelpy.leveldb import LevelDB
+from levelpy.iterviews import (
+    LevelValues,
+)
 
 
 @pytest.fixture
@@ -109,14 +112,22 @@ def test_contains(view, db, k_d):
 def test_keys(view, db, k_d):
     for x in view.keys():
         pass
-    db.items.assert_called_with(include_value=False,
-                                key_from=k_d,
-                                key_to=k_d+b'~')
+    db.items.assert_called_with(
+        include_value=False,
+        key_from=k_d,
+        key_to=k_d + b'~',
+    )
 
 
 def test_values(view, db, k_d):
-    for x in view.values():
+    vals = view.values()
+    assert isinstance(vals, LevelValues)
+    for v in vals:
         pass
-    db.items.assert_called_with(include_value=True,
-                                key_from=k_d,
-                                key_to=k_d+b'~')
+    db.RangeIter.assert_called_with(
+        verify_checksums=False,
+        reverse=False,
+        include_value=True,
+        key_from=k_d,
+        key_to=k_d + b'~',
+    )

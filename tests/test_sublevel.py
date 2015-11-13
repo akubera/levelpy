@@ -34,11 +34,13 @@ def sub(db, key, delim):
     return Sublevel(db, key, delim)
 
 
-def test_constructor(sub, db, key, delim):
+def test_constructor(sub, db, key, delim, k_d):
     assert isinstance(sub, Sublevel)
     assert sub._db is db
     assert sub.prefix is key
     assert sub.delim is delim
+    assert sub.range_begin == k_d
+    assert sub.range_end == k_d + b"~"
 
 
 def test_get_item(sub, db, k_d):
@@ -134,17 +136,23 @@ def test_contains(sub, db, k_d):
 def test_keys(sub, db, k_d):
     for x in sub.keys():
         pass
-    db.items.assert_called_with(include_value=False,
-                                key_from=k_d,
-                                key_to=k_d + b'~')
+    db.items.assert_called_with(
+        include_value=False,
+        key_from=k_d,
+        key_to=k_d + b'~'
+    )
 
 
 def test_values(sub, db, k_d):
-    for x in sub.values():
-        pass
-    db.items.assert_called_with(include_value=True,
-                                key_from=k_d,
-                                key_to=k_d + b'~')
+    vals = sub.values()
+    for _ in vals: pass
+    db.RangeIter.assert_called_with(
+        include_value=True,
+        key_from=sub.range_begin,
+        key_to=sub.range_end,
+        reverse=False,
+        verify_checksums=False,
+    )
 
 
 def test_custom_encoder(db, key, delim, k_d):
