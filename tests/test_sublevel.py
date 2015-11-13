@@ -155,7 +155,6 @@ def test_values(sub, db, k_d):
         key_from=sub.range_begin,
         key_to=sub.range_end,
         reverse=False,
-        verify_checksums=False,
     )
 
 

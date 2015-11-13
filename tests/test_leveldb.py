@@ -154,7 +154,7 @@ def test_keys(db):
 
 def test_values(db, mock_leveldb_backend, mock_data):
     vals = db.values()
-    expected = mock_data.values()
+    expected = tuple(map(bytes.decode, mock_data.values()))
     mock_leveldb_backend.RangeIter.return_value = mock_data.items()
     assert isinstance(vals, LevelValues)
     for a, b in zip(vals, expected):
@@ -162,7 +162,7 @@ def test_values(db, mock_leveldb_backend, mock_data):
 
 
 def test_values_reverse(db, mock_leveldb_backend, mock_data):
-    expected = mock_data.values()
+    expected = tuple(map(bytes.decode, mock_data.values()))
     mock_leveldb_backend.RangeIter.return_value = mock_data.items()
     vals = db.values()
     assert isinstance(vals, LevelValues)

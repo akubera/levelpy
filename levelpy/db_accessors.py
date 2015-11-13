@@ -102,6 +102,7 @@ class LevelAccessor:
             enc = (self.encode, self.decode)
         return enc
 
+
 class LevelReader(LevelAccessor):
     """
     Class containing methods for reading from an established database.
@@ -163,15 +164,14 @@ class LevelReader(LevelAccessor):
         else:
             return self.get(key)
 
-    def items(self, *args, **kwargs):
-
-        def transform(obj):
-            return (bytes(obj[0]), self.value_decode(obj[1]))
-
-        if 'include_value' in kwargs and kwargs['include_value'] is False:
-            yield from map(bytes, self.RangeIter(*args, **kwargs))
-        else:
-            yield from map(transform, self.RangeIter(*args, **kwargs))
+    def items(self, **kwargs):
+        """
+        Returns an iterator which iterates over the keys, value pairs in the
+        database.
+        """
+        kwargs['key_from'] = self.range_start_key(kwargs.get('key_from', None))
+        kwargs['key_to'] = self.range_stop_key(kwargs.get('key_to', None))
+        return LevelItems(self, **kwargs)
 
     def keys(self, **kwargs):
         """
@@ -203,6 +203,7 @@ class LevelReader(LevelAccessor):
 
     def RangeIter(self, *args, **kwargs):
         return self._db.RangeIter(*args, **kwargs)
+
 
 class LevelWriter(LevelAccessor):
     """
