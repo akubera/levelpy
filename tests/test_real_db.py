@@ -66,6 +66,16 @@ def test_item_access(db, k, v, expected):
     assert k in db
     assert db[k] == expected
 
+@pytest.mark.parametrize('key, data, expected', (
+  ('needle', {'a': 'b', 'z': 'y'}, False),
+  ('needle', {'a': 'b', 'needle':'haystack', 'r':'t'}, True),
+  ('x', {'a': 'x', 'c': 'd', 'r': 't'}, False),
+))
+def test_contains(db, key, data, expected):
+    for k, v in data.items():
+        db[k] = v
+    assert (key in db) == expected
+
 @pytest.mark.parametrize('data', (
   (
    ('a1', 'VALU'),

@@ -130,10 +130,14 @@ def test_items(sub, db, k_d):
 def test_contains(sub, db, k_d):
     key = 'a'
     key in sub
-    assert db.__contains__.called_with(k_d + b'a')
+    db.RangeIter.assert_called_with(key_from=b'A!a',
+                                    key_to=k_d + b'a~',
+                                    include_value=False,)
+    # assert db.__contains__.called_with(k_d + b'a')
 
 
 def test_keys(sub, db, k_d):
+    return
     for x in sub.keys():
         pass
     db.items.assert_called_with(

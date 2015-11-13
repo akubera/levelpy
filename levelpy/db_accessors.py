@@ -173,21 +173,30 @@ class LevelReader(LevelAccessor):
         else:
             yield from map(transform, self.RangeIter(*args, **kwargs))
 
-    def keys(self, *args, **kwargs):
-        kwargs['include_value'] = False
-        yield from self.items(*args, **kwargs)
-
-    def values(self, *args, **kwargs):
+    def keys(self, **kwargs):
         """
+        Returns an iterator which iterates over the keys in the database,
+        ignoring values.
         """
         kwargs['key_from'] = self.range_start_key(kwargs.get('key_from', None))
         kwargs['key_to'] = self.range_stop_key(kwargs.get('key_to', None))
-        return LevelValues(self, *args, **kwargs)
+        return LevelKeys(self, **kwargs)
+
+    def values(self, **kwargs):
+        """
+        Returns an iterator which iterates over the values in the database,
+        ignoring keys.
+        """
+        kwargs['key_from'] = self.range_start_key(kwargs.get('key_from', None))
+        kwargs['key_to'] = self.range_stop_key(kwargs.get('key_to', None))
+        return LevelValues(self, **kwargs)
 
     def __contains__(self, key):
-        key = self.key_transform(key)
-        stop = key + self._range_ending
-        return key in self.keys(key_from=key, key_to=stop)
+        search_key = self.key_transform(key)
+        stop_key = search_key + self._range_ending
+        return search_key in self.RangeIter(key_from=search_key,
+                                            key_to=stop_key,
+                                            include_value=False)
 
     def Get(self, key):
         return self._db.Get(key)

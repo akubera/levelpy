@@ -44,13 +44,13 @@ class LevelKeys(KeysView):
         '_args',
     ]
 
-    def __init__(self, db, key_from=None, key_to=None, verify_checksums=False):
+    def __init__(self, db, key_from=None, key_to=None, **kwargs):
         self._db = db
-        self._args = {
+        self._args = kwargs
+        self._args.update({
             'key_from': key_from,
             'key_to': key_to,
-            'verify_checksums': verify_checksums,
-        }
+        })
 
     def __iter__(self):
         kwargs = copy(self._args)
