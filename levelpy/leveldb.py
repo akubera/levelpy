@@ -5,7 +5,7 @@
 from .leveldb_module_shims import NormalizeBackend
 from .db_accessors import (LevelAccessor, LevelReader, LevelWriter)
 from .sublevel import Sublevel
-# from .view import View
+from .view import View
 
 
 class LevelDB(LevelReader, LevelWriter):
@@ -102,20 +102,15 @@ class LevelDB(LevelReader, LevelWriter):
         """
         Generate a sublevel with prefix key.
         """
-        if value_encoding is not None:
-            enc = value_encoding
-        else:
-            enc = (self.encode, self.decode)
-
-        return Sublevel(self,
+        enc = self._get_encoding(value_encoding)
+        return Sublevel(self._db,
                         self.key_transform(key),
                         delim=delim,
                         value_encoding=enc,
                         )
 
-    def view(self, key, delim=None, value_encoding=None):
+    def view(self, key, delim=b'!', value_encoding=None):
         prefix = self.key_transform(key)
-        delim = self.delim if (delim is None) else delim
         enc = self._get_encoding(value_encoding)
         return View(self._db,
                     prefix,

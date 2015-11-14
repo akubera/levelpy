@@ -223,6 +223,13 @@ def test_create_snapshot(db, mock_leveldb_backend):
 
 def test_create_sublevel(db, mock_leveldb_backend):
     a = db.sublevel('a')
-    assert a._db is db
+    assert a._db is mock_leveldb_backend
     assert a.prefix == b'a'
     assert a._key_prefix == b'a!'
+
+
+def test_create_view(db, mock_leveldb_backend):
+    v = db.view('a')
+    assert v._db is mock_leveldb_backend
+    assert v.prefix == b'a'
+    assert v._key_prefix == b'a!'
