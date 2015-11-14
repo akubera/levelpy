@@ -68,6 +68,15 @@ def test_constructor_string_backend():
         levelpy.leveldb.LevelDB('.', 'nopkg')
 
 
+@pytest.mark.parametrize('enc', [
+    (1, 2, 3),
+    None,
+])
+def test_constructor_bad_value_enc(db_path, mock_LevelDB, enc):
+    with pytest.raises(TypeError):
+        levelpy.leveldb.LevelDB(db_path, mock_LevelDB, value_encoding=enc)
+
+
 def test_getitem(db, mock_leveldb_backend):
     db['a']
     mock_leveldb_backend.Get.assert_called_with(b'a')
@@ -233,3 +242,25 @@ def test_create_view(db, mock_leveldb_backend):
     assert v._db is mock_leveldb_backend
     assert v.prefix == b'a'
     assert v._key_prefix == b'a!'
+
+
+@pytest.mark.parametrize('input, output', [
+    (None, None),
+    (1, b'1'),
+])
+def test_byteify_values(db, input, output):
+    assert db.byteify(input) == output
+
+
+@pytest.mark.parametrize('encstr, encoding, output', [
+    (None, 'a', 'a'),
+    ('a', None, 'a'),
+    (None, None, None),
+])
+def test_get_encoding_with_value_encoding_str(db, encstr, encoding, output):
+    db.value_encoding_str = encstr
+    enc = db._get_encoding(encoding)
+    if output is not None:
+        assert enc == output
+    else:
+        assert enc == (db.encode, db.decode)
