@@ -132,3 +132,39 @@ def test_item_iteration_slice(db, slice_, data, expected):
 
     assert len(l) is len(expected)
     assert l == expected
+
+@pytest.mark.parametrize('slice_, data, expected', (
+    ( (b'A', b'B'),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ('a', 'b')
+    ),
+    ( ('A', 'B'),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ('a', 'b')
+    ),
+    ( ('A', None),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ('a', 'b', 'c')
+    ),
+    ( ('A1', None),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ('b', 'c')
+    ),
+    ( (None, 'A1'),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ('a', 'b')
+    ),
+    ( (None, None),
+      [('A0', 'a'), ('A1', 'b'), ('C', 'c')],
+      ['a', 'b', 'c']
+    ),
+))
+def test_items(db, slice_, data, expected):
+
+    for k, v in data:
+        db[k] = v
+
+    l = type(expected)(v.decode() for k, v in db[slice_[0]:slice_[1]])
+
+    assert len(l) is len(expected)
+    assert l == expected
