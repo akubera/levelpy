@@ -51,8 +51,8 @@ class BatchContext:
                                    (db.encode, db.decode))
             self._db = db
             self._context = ctx
-            self.Put = self._context.Put
-            self.Delete = self._context.Delete
+            # self.Put = self._context.Put
+            # self.Delete = self._context.Delete
 
         def Put(self, key, value):
             return self._context.Put(key, value)
