@@ -71,15 +71,6 @@ class LevelDB(LevelReader, LevelWriter):
 
         NormalizeBackend(self, self._db)
 
-        def update_attr(name, items):
-            if hasattr(self, name):
-                return
-            for item in items:
-                if hasattr(self._db, item):
-                    setattr(self, name, getattr(self._db, item))
-                    return
-            setattr(self, name, None)
-
     def __copy__(self):
         """
         Shallow copy of database - reusing the current instance connection
