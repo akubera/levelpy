@@ -16,7 +16,7 @@ class View(LevelReader):
 
     def __init__(self, db, prefix='', delim='!', value_encoding='utf-8'):
 
-        super().__init__(prefix, delim)
+        super().__init__(prefix, delim, value_encoding)
 
         self._db = db
         self.prefix = prefix

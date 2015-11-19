@@ -23,6 +23,11 @@ def delim():
 
 
 @pytest.fixture
+def value_encode_str():
+    return 'bin'
+
+
+@pytest.fixture
 def k_d(key, delim):
     return key + delim
 
@@ -33,15 +38,16 @@ def db():
 
 
 @pytest.fixture
-def view(db, key, delim):
-    return View(db, key, delim)
+def view(db, key, delim, value_encode_str):
+    return View(db, key, delim, value_encode_str)
 
 
-def test_constructor(view, db, key, delim):
+def test_constructor(view, db, key, delim, value_encode_str):
     assert isinstance(view, View)
     assert view._db is db
     assert view.prefix is key
     assert view.delim is delim
+    assert view.value_encoding_str is value_encode_str
 
 
 def test_get_item(view, db, k_d):
