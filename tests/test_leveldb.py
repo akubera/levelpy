@@ -264,3 +264,14 @@ def test_get_encoding_with_value_encoding_str(db, encstr, encoding, output):
         assert enc == output
     else:
         assert enc == (db.encode, db.decode)
+
+
+def test_value_encoding_protocol_buffer():
+    decoded_mock = mock.Mock()
+    m = mock.Mock()
+    m.return_value = decoded_mock
+    a = levelpy.leveldb.LevelAccessor('a', 'b', value_encoding=m)
+    assert a.encode is m.SerializeToString
+    s = bytearray(b"foo")
+    o = a.decode(s)
+    o.ParseFromString.assert_called_with(bytes(s))

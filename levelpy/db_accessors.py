@@ -35,6 +35,17 @@ class LevelAccessor:
             self.encode, self.decode = value_encoding
             self.value_encoding_str = None
 
+        # Assume this is a protocol buffer
+        elif hasattr(value_encoding, 'SerializeToString') and \
+             hasattr(value_encoding, 'ParseFromString'):
+            def decode_protocol_buffer(bytestr):
+                obj = value_encoding()
+                obj.ParseFromString(bytes(bytestr))
+                return obj
+            self.decode = decode_protocol_buffer
+            self.encode = value_encoding.SerializeToString
+            self.value_encoding_str = None
+
         else:
             raise TypeError("value_encoding must be a string or"
                             "encoding/decoding function tuple.")
