@@ -81,6 +81,10 @@ def test_constructor_bad_value_enc(db_path, mock_LevelDB, enc):
         levelpy.leveldb.LevelDB(db_path, mock_LevelDB, value_encoding=enc)
 
 
+def test_subkey_returns_none(db):
+    assert db.subkey(None) is None
+
+
 def test_getitem(db, mock_leveldb_backend):
     db['a']
     mock_leveldb_backend.Get.assert_called_with(b'a')
@@ -140,7 +144,7 @@ def test_get_slice_with_collection(db, input):
     assert db._db.Get.call_count is len(input)
 
 
-def notest_contains(db, mock_leveldb_backend):
+def test_contains(db, mock_leveldb_backend):
     # TODO: Remove implementation details
     key = 'a'
     bkey = 'a'.encode()

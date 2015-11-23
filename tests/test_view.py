@@ -54,24 +54,34 @@ def test_constructor(view, db, key, delim, value_encode_str):
 
 def test_get_item(view, db, k_d):
     view['a']
-    db.__getitem__.assert_called_with(k_d + b'a')
+    db.Get.assert_called_with(k_d + b'a')
 
 
 def test_get_slice(view, db, k_d):
     view['a':'b']
-    db.__getitem__.assert_called_with(slice(k_d + b'a', k_d + b'b'))
+    db.RangeIter.assert_called_with(
+        key_from=k_d + b'a',
+        key_to=k_d + b'b',
+    )
 
 
 def test_get_slice_with_start(view, db, k_d):
     key = '1'
     view[key:]
-    db.__getitem__.assert_called_with(slice(k_d+b'1', None))
+    db.RangeIter.assert_called_with(
+        key_from=k_d + b'1',
+        key_to=view.range_end
+    )
 
 
 def test_get_slice_with_stop(view, db, k_d):
     key = '1'
     view[:key]
-    db.__getitem__.assert_called_with(slice(None, k_d + b'1'))
+    range_end = k_d + key.encode()
+    db.RangeIter.assert_called_with(
+        key_from=view.range_begin,
+        key_to=range_end
+    )
 
 
 def test_get_bad_slice(view, db, k_d):
@@ -84,9 +94,15 @@ def test_get_bad_slice(view, db, k_d):
     (['1', '2'], [b'A!1', b'A!2']),
     ({'1', '2'}, {b'A!1', b'A!2'}),
 ])
-def test_get_slice_with_collection(view, db, k_d, input, args):
-    view[input]
-    db.__getitem__.assert_called_with(args)
+def test_get_with_collection(view, db, k_d, input, args):
+    ret = view[input]
+    assert type(ret) == type(input)
+    expected_args = [((a,),) for a in args]
+    # 'set' is special case - unknown call order
+    if isinstance(input, set):
+        assert all(c in expected_args for c in db.Get.call_args_list)
+    else:
+        assert db.Get.call_args_list == expected_args
 
 
 def test_copy(view, db, key, delim):
