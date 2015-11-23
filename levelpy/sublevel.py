@@ -14,6 +14,7 @@ from .iterviews import (
     LevelValues,
 )
 
+
 class Sublevel(LevelReader, LevelWriter):
     """
     A Sublevel can be thought of as a table or collection in a leveldb
@@ -31,18 +32,10 @@ class Sublevel(LevelReader, LevelWriter):
 
     def __copy__(self):
         """
-        Simple copy of sublevel - same db, prefix, and delimeter
+        Simple copy of sublevel - same db, prefix, delimeter, and encoding
         """
-        return type(self)(self._db, self.prefix, self.delim)
-
-    def items(self, key_from='', key_to='~', *args, **kwargs):
-        """iterate over all items in the sublevel"""
-        key_from = self.subkey(key_from)
-        key_to = self.subkey(key_to)
-        yield from self._db.items(key_from=key_from,
-                                  key_to=key_to,
-                                  *args,
-                                  **kwargs)
+        enc = self._get_encoding(None)
+        return Sublevel(self._db, self.prefix, self.delim, enc)
 
     def sublevel(self, key, delim=None, value_encoding=None):
         """
