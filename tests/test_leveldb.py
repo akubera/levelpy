@@ -5,7 +5,11 @@
 import pytest
 from unittest import mock
 import levelpy.leveldb
-from levelpy.iterviews import LevelValues
+from levelpy.iterviews import (
+    LevelItems,
+    LevelValues,
+    LevelKeys,
+)
 
 
 @pytest.fixture
@@ -77,6 +81,10 @@ def test_constructor_bad_value_enc(db_path, mock_LevelDB, enc):
         levelpy.leveldb.LevelDB(db_path, mock_LevelDB, value_encoding=enc)
 
 
+def test_subkey_returns_none(db):
+    assert db.subkey(None) is None
+
+
 def test_getitem(db, mock_leveldb_backend):
     db['a']
     mock_leveldb_backend.Get.assert_called_with(b'a')
@@ -136,7 +144,7 @@ def test_get_slice_with_collection(db, input):
     assert db._db.Get.call_count is len(input)
 
 
-def notest_contains(db, mock_leveldb_backend):
+def test_contains(db, mock_leveldb_backend):
     # TODO: Remove implementation details
     key = 'a'
     bkey = 'a'.encode()
@@ -148,26 +156,44 @@ def notest_contains(db, mock_leveldb_backend):
     )
 
 
-def test_items(db):
-    for x in db.items():
-        assert x
-    # mock_leveldb_backend.__contains__.assert_called_with('a')
+def test_items(db, mock_leveldb_backend):
+    items = db.items()
+    assert isinstance(items, LevelItems)
+    for x in items: pass
+    mock_leveldb_backend.RangeIter.assert_called_with(
+        key_from=b'',
+        key_to=b'~',
+        include_value=True,
+        reverse=False,
+    )
 
 
-def test_keys(db):
+def test_keys(db, mock_leveldb_backend):
     keys = db.keys()
-    # for x in keys: pass
-    # assert x
-    # mock_leveldb_backend.__contains__.assert_called_with('a')
+    assert isinstance(keys, LevelKeys)
+    for x in keys: pass
+    mock_leveldb_backend.RangeIter.assert_called_with(
+        key_from=b'',
+        key_to=b'~',
+        include_value=False,
+        reverse=False,
+    )
 
 
 def test_values(db, mock_leveldb_backend, mock_data):
     vals = db.values()
+    assert isinstance(vals, LevelValues)
     expected = tuple(map(bytes.decode, mock_data.values()))
     mock_leveldb_backend.RangeIter.return_value = mock_data.items()
     assert isinstance(vals, LevelValues)
     for a, b in zip(vals, expected):
         assert a == b
+    mock_leveldb_backend.RangeIter.assert_called_with(
+        key_from=b'',
+        key_to=b'~',
+        include_value=True,
+        reverse=False,
+    )
 
 
 def test_values_reverse(db, mock_leveldb_backend, mock_data):
@@ -264,3 +290,14 @@ def test_get_encoding_with_value_encoding_str(db, encstr, encoding, output):
         assert enc == output
     else:
         assert enc == (db.encode, db.decode)
+
+
+def test_value_encoding_protocol_buffer():
+    decoded_mock = mock.Mock()
+    m = mock.Mock()
+    m.return_value = decoded_mock
+    a = levelpy.leveldb.LevelAccessor('a', 'b', value_encoding=m)
+    assert a.encode is m.SerializeToString
+    s = bytearray(b"foo")
+    o = a.decode(s)
+    o.ParseFromString.assert_called_with(bytes(s))

@@ -57,6 +57,7 @@ class Serializer:
         'utf8': (utf8_encode, utf8_decode),
         'utf-8': (utf8_encode, utf8_decode),
         'bin': (binary_encode, binary_decode),
+        'binary': (binary_encode, binary_decode),
         'none': (binary_encode, binary_decode),
         'msgpack': (MsgPackSerializer.encode, MsgPackSerializer.decode)
     }

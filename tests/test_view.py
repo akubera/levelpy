@@ -8,7 +8,9 @@ from unittest import mock
 from levelpy.view import View
 from levelpy.leveldb import LevelDB
 from levelpy.iterviews import (
+    LevelItems,
     LevelValues,
+    LevelKeys,
 )
 
 
@@ -23,6 +25,11 @@ def delim():
 
 
 @pytest.fixture
+def value_encode_str():
+    return 'bin'
+
+
+@pytest.fixture
 def k_d(key, delim):
     return key + delim
 
@@ -33,37 +40,48 @@ def db():
 
 
 @pytest.fixture
-def view(db, key, delim):
-    return View(db, key, delim)
+def view(db, key, delim, value_encode_str):
+    return View(db, key, delim, value_encode_str)
 
 
-def test_constructor(view, db, key, delim):
+def test_constructor(view, db, key, delim, value_encode_str):
     assert isinstance(view, View)
     assert view._db is db
     assert view.prefix is key
     assert view.delim is delim
+    assert view.value_encoding_str is value_encode_str
 
 
 def test_get_item(view, db, k_d):
     view['a']
-    db.__getitem__.assert_called_with(k_d + b'a')
+    db.Get.assert_called_with(k_d + b'a')
 
 
 def test_get_slice(view, db, k_d):
     view['a':'b']
-    db.__getitem__.assert_called_with(slice(k_d + b'a', k_d + b'b'))
+    db.RangeIter.assert_called_with(
+        key_from=k_d + b'a',
+        key_to=k_d + b'b',
+    )
 
 
 def test_get_slice_with_start(view, db, k_d):
     key = '1'
     view[key:]
-    db.__getitem__.assert_called_with(slice(k_d+b'1', None))
+    db.RangeIter.assert_called_with(
+        key_from=k_d + b'1',
+        key_to=view.range_end
+    )
 
 
 def test_get_slice_with_stop(view, db, k_d):
     key = '1'
     view[:key]
-    db.__getitem__.assert_called_with(slice(None, k_d + b'1'))
+    range_end = k_d + key.encode()
+    db.RangeIter.assert_called_with(
+        key_from=view.range_begin,
+        key_to=range_end
+    )
 
 
 def test_get_bad_slice(view, db, k_d):
@@ -76,9 +94,15 @@ def test_get_bad_slice(view, db, k_d):
     (['1', '2'], [b'A!1', b'A!2']),
     ({'1', '2'}, {b'A!1', b'A!2'}),
 ])
-def test_get_slice_with_collection(view, db, k_d, input, args):
-    view[input]
-    db.__getitem__.assert_called_with(args)
+def test_get_with_collection(view, db, k_d, input, args):
+    ret = view[input]
+    assert type(ret) == type(input)
+    expected_args = [((a,),) for a in args]
+    # 'set' is special case - unknown call order
+    if isinstance(input, set):
+        assert all(c in expected_args for c in db.Get.call_args_list)
+    else:
+        assert db.Get.call_args_list == expected_args
 
 
 def test_copy(view, db, key, delim):
@@ -96,37 +120,45 @@ def test_create_view(view, db, k_d):
     assert a.prefix == expected_prefix
 
 
-def test_items(view, db, k_d):
-    start, stop = k_d, k_d + b"~"
-    for i in view.items():
-        pass
-    db.items.assert_called_with(key_from=start, key_to=stop)
-
-
-def bntest_contains(view, db, k_d):
+def test_contains(view, db, k_d):
     key = 'a'
     key in view
-    assert db.__contains__.called_with(k_d + b'a')
+    assert db.__contains__.called_with(view.subkey('a'))
 
 
-def notest_keys(view, db, k_d):
-    for x in view.keys():
-        pass
-    db.items.assert_called_with(
+def test_items(view, db, k_d):
+    start, stop = k_d, k_d + b"~"
+    items = view.items()
+    assert isinstance(items, LevelItems)
+    for i in items: pass
+
+    db.RangeIter.assert_called_with(
+        key_from=start,
+        key_to=stop,
+        include_value=True,
+        reverse=False,
+        )
+
+
+def test_keys(view, db, k_d):
+    keys = view.keys()
+    assert keys._db._db is db
+    assert isinstance(keys, LevelKeys)
+    for k in keys: pass
+
+    db.RangeIter.assert_called_with(
         include_value=False,
-        verify_checksums=False,
+        reverse=False,
         key_from=k_d,
         key_to=k_d + b'~',
     )
 
 
-def notest_values(view, db, k_d):
+def test_values(view, db, k_d):
     vals = view.values()
     assert isinstance(vals, LevelValues)
-    for v in vals:
-        pass
+    for v in vals: pass
     db.RangeIter.assert_called_with(
-        verify_checksums=False,
         reverse=False,
         include_value=True,
         key_from=k_d,

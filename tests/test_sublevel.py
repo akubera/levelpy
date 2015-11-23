@@ -7,6 +7,12 @@ import pytest
 from unittest import mock
 from levelpy.sublevel import Sublevel
 from levelpy.leveldb import LevelDB
+from levelpy.iterviews import (
+    LevelItems,
+    LevelValues,
+    LevelKeys,
+)
+
 
 
 @pytest.fixture
@@ -120,13 +126,6 @@ def test_create_view(sub, db, k_d):
     assert a.prefix == expected_prefix
 
 
-def test_items(sub, db, k_d):
-    start, stop = k_d, k_d + b"~"
-    for i in sub.items():
-        pass
-    db.items.assert_called_with(key_from=start, key_to=stop)
-
-
 def test_contains(sub, db, k_d):
     key = 'a'
     key in sub
@@ -136,26 +135,44 @@ def test_contains(sub, db, k_d):
     # assert db.__contains__.called_with(k_d + b'a')
 
 
-def test_keys(sub, db, k_d):
-    return
-    for x in sub.keys():
-        pass
-    db.items.assert_called_with(
-        include_value=False,
+def test_items(sub, db, k_d):
+    items = sub.items()
+    assert isinstance(items, LevelItems)
+    for i in items: pass
+
+    db.RangeIter.assert_called_with(
         key_from=k_d,
-        key_to=k_d + b'~'
+        key_to=k_d + b'~',
+        include_value=True,
+        reverse=False,
+        )
+
+
+def test_keys(sub, db, k_d):
+    keys = sub.keys()
+    assert keys._db._db is db
+    assert isinstance(keys, LevelKeys)
+    for k in keys: pass
+
+    db.RangeIter.assert_called_with(
+        include_value=False,
+        reverse=False,
+        key_from=k_d,
+        key_to=k_d + b'~',
     )
 
 
 def test_values(sub, db, k_d):
     vals = sub.values()
-    for _ in vals: pass
+    assert isinstance(vals, LevelValues)
+    for v in vals: pass
     db.RangeIter.assert_called_with(
-        include_value=True,
-        key_from=sub.range_begin,
-        key_to=sub.range_end,
         reverse=False,
+        include_value=True,
+        key_from=k_d,
+        key_to=k_d + b'~',
     )
+
 
 
 def test_custom_encoder(db, key, delim, k_d):

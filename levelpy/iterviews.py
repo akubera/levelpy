@@ -58,13 +58,15 @@ class LevelKeys(KeysView):
         kwargs = copy(self._args)
         kwargs['reverse'] = False
         kwargs['include_value'] = False
-        return self._db.RangeIter(**kwargs)
+        for k in self._db.RangeIter(**kwargs):
+            yield bytes(k)
 
     def __reversed__(self, *args, **kwargs):
         kwargs = copy(self._args)
         kwargs['reverse'] = True
         kwargs['include_value'] = False
-        return self._db.RangeIter(**kwargs)
+        for k in self._db.RangeIter(**kwargs):
+            yield bytes(k)
 
 
 class LevelValues(ValuesView):
