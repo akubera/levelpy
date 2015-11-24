@@ -39,6 +39,9 @@ class LevelItems(ItemsView):
         for k, v in self._db.RangeIter(**kwargs):
             yield k, self._db.decode(v)
 
+    def __repr__(self):                                     # pragma: no cover
+        return "<LevelItems @%x>" % id(self)
+
 
 class LevelKeys(KeysView):
     __slots__ = [
@@ -67,6 +70,9 @@ class LevelKeys(KeysView):
         kwargs['include_value'] = False
         for k in self._db.RangeIter(**kwargs):
             yield bytes(k)
+
+    def __repr__(self):                                     # pragma: no cover
+        return "<LevelKeys @%x>" % id(self)
 
 
 class LevelValues(ValuesView):
@@ -97,5 +103,5 @@ class LevelValues(ValuesView):
         for k, v in self._db.RangeIter(**kwargs):
             yield self._db.decode(v)
 
-    def __repr__(self):
-        return "<LevelValues>"
+    def __repr__(self):                                     # pragma: no cover
+        return "<LevelValues @%x>" % id(self)
