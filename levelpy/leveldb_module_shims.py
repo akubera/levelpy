@@ -54,7 +54,7 @@ def plyvel_database(wrapper, db):
 
     import plyvel
 
-    def not_implemented(*args):
+    def not_implemented(*args):  # pragma: no cover
         raise NotImplemented()
 
     wrapper.DestroyDB = plyvel.destroy_db

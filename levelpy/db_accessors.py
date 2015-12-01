@@ -36,8 +36,8 @@ class LevelAccessor:
             self.value_encoding_str = None
 
         # Assume this is a protocol buffer
-        elif hasattr(value_encoding, 'SerializeToString') and \
-             hasattr(value_encoding, 'ParseFromString'):
+        elif (hasattr(value_encoding, 'SerializeToString')
+              and hasattr(value_encoding, 'ParseFromString')):
             def decode_protocol_buffer(bytestr):
                 obj = value_encoding()
                 obj.ParseFromString(bytes(bytestr))
