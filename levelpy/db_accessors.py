@@ -86,6 +86,13 @@ class LevelAccessor:
     def delim(self, value):
         self._delim = self.byteify(value)
 
+    def join(self, *keys):
+        """
+        Key-encodes each argument (i.e. byteifies), and does a join with This
+        accessor's delimiter character
+        """
+        return self._delim.join(map(self.byteify, keys))
+
     @staticmethod
     def byteify(value) -> bytes:
         """

@@ -164,3 +164,9 @@ def test_values(view, db, k_d):
         key_from=k_d,
         key_to=k_d + b'~',
     )
+
+@pytest.mark.parametrize("keys, expected", [
+    (["a", "b", "c"], b"a!b!c"),
+])
+def test_values(view, keys, expected):
+    assert view.join(*keys) == expected
