@@ -54,9 +54,19 @@ def plyvel_database(wrapper, db):
 
     import plyvel
 
+    def not_implemented(*args):
+        raise NotImplemented()
+
     wrapper.DestroyDB = plyvel.destroy_db
 
     wrapper.Get = db.get
     wrapper.Put = db.put
     wrapper.Delete = db.delete
     wrapper.Write = None
+    wrapper.RangeIter = not_implemented
+    wrapper.GetStats = not_implemented
+    wrapper.CreateSnapshot = plyvel.DB.snapshot
+
+    wrapper.DestroyDB = not_implemented
+    wrapper.RepairDB = not_implemented
+    wrapper.WriteBatch = plyvel.DB.write_batch

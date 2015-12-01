@@ -13,6 +13,25 @@ class LevelDB(LevelReader, LevelWriter):
     LevelDB interface.
 
     This is the wrapper class around a 'real' implementation of LevelDB.
+
+    :param db: Path to database or a pre-created database object
+    :type db: str, LevelDB instance
+
+    :param leveldb_cls: Full name of the class which will be the database
+        backend. This uses python's __import__ method, so there is no need to
+        import and create the.
+    :type leveldb_cls: str
+
+    :param value_encoding: The default serialization for the database. See the
+        Serializer class for more information on value_encoding.
+    :type value_encoding: str
+
+    :param create_if_missing: Argument passed to the database class which
+        creates a new database in the filesystem if none exists
+    :type create_if_missing: bool
+
+    :param db_kwargs: keyword arguments passed directly to the database class
+        specified
     """
 
     _db = None
@@ -20,13 +39,12 @@ class LevelDB(LevelReader, LevelWriter):
     _leveldb_pkg = None
     path = None
 
-    str_encoding = 'utf-8'
-
     def __init__(self,
                  db,
                  leveldb_cls='leveldb.LevelDB',
                  value_encoding='utf-8',
-                 **kwargs):
+                 create_if_missing=False,
+                 **db_kwargs):
 
         # if db is a string - create the db object from the leveldb_cls param
         if isinstance(db, str):
@@ -52,7 +70,9 @@ class LevelDB(LevelReader, LevelWriter):
                 self._leveldb_cls = leveldb_cls
 
             # create the backend
-            self._db = self._leveldb_cls(self.path, **kwargs)
+            self._db = self._leveldb_cls(self.path,
+                                         create_if_missing=create_if_missing,
+                                         **db_kwargs)
 
             # The backend package was not determined.
             # Provided 'class' was just a factory function - inspect
@@ -78,16 +98,25 @@ class LevelDB(LevelReader, LevelWriter):
         return type(self)(self._db)
 
     def batch(self):
+        """
+        Alias of the write_batch() method - creates a BatchDB object.
+        """
         return self.write_batch()
 
     def destroy_db(self):
         raise NotImplementedError
 
     def stats(self):
+        """
+        Returns the database stats.
+        """
         return self.GetStats()
 
     def create_snapshot(self):
-        return self.CreateSnapshot()
+        """
+        Returns the database stats.
+        """
+        return self.CreateSnapshot(self._db)
 
     def sublevel(self, key, delim=b'!', value_encoding=None):
         """
@@ -101,6 +130,9 @@ class LevelDB(LevelReader, LevelWriter):
                         )
 
     def view(self, key, delim=b'!', value_encoding=None):
+        """
+        Generate a read-only view of a prefixed part of the database.
+        """
         prefix = self.key_transform(key)
         enc = self._get_encoding(value_encoding)
         return View(self._db,

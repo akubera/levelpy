@@ -34,7 +34,7 @@ def opened_db(backend_class, leveldir):
 
 @pytest.fixture
 def db(backend_class_str, leveldir):
-    return LevelDB(leveldir, backend_class_str)
+    return LevelDB(leveldir, backend_class_str, create_if_missing=True)
 
 
 @pytest.fixture

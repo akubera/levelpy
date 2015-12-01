@@ -64,7 +64,7 @@ def test_constructor(db, db_path, mock_LevelDB, mock_leveldb_backend):
     assert isinstance(db, levelpy.leveldb.LevelDB)
     assert db._db is mock_leveldb_backend
     assert db._db.Get is mock_leveldb_backend.Get
-    mock_LevelDB.LevelDB.assert_called_with(db_path)
+    mock_LevelDB.LevelDB.assert_called_with(db_path, create_if_missing=False)
 
 
 def test_constructor_string_backend():
