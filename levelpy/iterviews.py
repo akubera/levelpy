@@ -66,6 +66,7 @@ class LevelKeys(KeysView):
         kwargs['reverse'] = False
         kwargs['include_value'] = False
         for k in self._db.RangeIter(**kwargs):
+            print("hai")
             yield self.key_transform(k)
 
     def __reversed__(self):

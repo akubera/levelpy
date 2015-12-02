@@ -8,7 +8,7 @@ Tests for storage/retreival of a real database.
 import pytest
 from fixtures import leveldir
 from levelpy.leveldb import LevelDB
-
+from itertools import zip_longest
 
 @pytest.fixture(scope='module')
 def backend_class_str():
@@ -217,6 +217,55 @@ def test_values_reversed(filled_db, range_, expected):
     for a, b in zip(reversed(vals), expected):
         assert a == b
 
+
 def test_tostring(db):
     vals = db.values()
     str(vals) == "<LevelValues>"
+
+
+unique_subkey_data = [
+    ('!A!X', 'a'),
+    ('!B!n!0', 'b'),
+    ('!B!n!3', 'c'),
+    ('!B!n!1', 'xxx'),
+    ('!B!m', 'h'),
+    ('!B!m!4', 'g'),
+    ('!B!z', 'd'),
+    ('!Bc!z', 'bc'),
+    ('!C', 'XX'),
+    ('!D', 'XX'),
+]
+
+
+@pytest.mark.parametrize('data', [
+    unique_subkey_data,
+])
+@pytest.mark.parametrize('viewkey, expected', [
+    ('!B', [b'm', b'n', b'z']),
+    ('!A', [b'X']),
+    ('!C', []),
+    ('', [b'A', b'B', b'Bc', b'C', b'D']),
+])
+def test_unique_subkeys(filled_db, viewkey, expected):
+    db = filled_db
+    view = db.view(viewkey)
+    ukeys = view.unique_subkeys()
+    for a, b in zip_longest(ukeys, expected):
+        assert a == b
+
+
+@pytest.mark.parametrize('data', [
+    unique_subkey_data,
+])
+@pytest.mark.parametrize('viewkey, expected', [
+    ('!B', [b'z', b'n', b'm']),
+    ('!A', [b'X']),
+    ('!C', []),
+    ('', [b'D', b'C', b'Bc', b'B', b'A']),
+])
+def test_unique_subkeys_reversed(filled_db, viewkey, expected):
+    db = filled_db
+    view = db.view(viewkey)
+    ukeys = view.unique_subkeys()
+    for a, b in zip_longest(reversed(ukeys), expected):
+        assert a == b

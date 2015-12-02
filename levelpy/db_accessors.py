@@ -2,6 +2,7 @@
 # levelpy/db_accessors.py
 #
 
+from copy import copy
 from numbers import Number
 from .serializer import Serializer
 from .iterviews import (
@@ -92,6 +93,18 @@ class LevelAccessor:
         accessor's delimiter character
         """
         return self._delim.join(map(self.byteify, keys))
+
+    def strip_prefix(self, key):
+        """
+        Returns a key without the prefix of this LevelAccessor.
+        If the argument does not start with the key prefix, it is returned as
+        is (turened into bytes).
+        """
+        key = self.byteify(key)
+        if key.startswith(self._key_prefix):
+            return key[len(self._key_prefix):]
+        else:
+            return key
 
     @staticmethod
     def byteify(value) -> bytes:
@@ -199,6 +212,68 @@ class LevelReader(LevelAccessor):
         kwargs['key_from'] = self.range_start_key(kwargs.get('key_from', None))
         kwargs['key_to'] = self.range_stop_key(kwargs.get('key_to', None))
         return LevelKeys(self, **kwargs)
+
+    def unique_subkeys(self, key_from=b'', key_to=b'\xFF', **kwargs):
+        """
+        Returns an iterator which iterates over the keys in the database,
+        ignoring values.
+        """
+
+        key_from = self.key_transform(key_from)
+        key_to = self.key_transform(key_to)
+
+        class LevelKeysUnique(LevelKeys):
+
+            def __iter__(self_):
+                kwargs = copy(self_._args)
+                kwargs['reverse'] = False
+                kwargs['include_value'] = False
+
+                prev = b''
+
+                while prev is not None:
+                    try:
+                        z = next(self.RangeIter(**kwargs))
+                        y = self.strip_prefix(z)
+                        prev = y.split(self.delim)[0]
+                        yield prev
+                        next_key = self.subkey(self.join(prev, b"\xFF"))
+                        kwargs['key_from'] = next_key
+                    except StopIteration:
+                        prev = None
+
+            def __reversed__(self_):
+                kwargs = copy(self_._args)
+                kwargs['reverse'] = True
+                kwargs['include_value'] = False
+                key = prev = b''
+
+                while prev is not None:
+                    try:
+                        it = self.RangeIter(**kwargs)
+
+                        # if we get the same key as previous, get next
+                        while key == prev:
+                            last = next(it)
+                            # remove prefix and suffix to get the key
+                            key = self.strip_prefix(last).split(self.delim)[0]
+
+                        # we have the next unique key
+                        # - yield key and update the kwargs for next iterator
+                        yield key
+                        prev = key
+
+                        kwargs['key_to'] = self.key_transform(prev)
+
+                    except StopIteration:
+                        prev = None
+
+        keys = LevelKeysUnique(self,
+                               key_from=key_from,
+                               key_to=key_to,
+                               **kwargs)
+
+        return keys
 
     def values(self, **kwargs):
         """
