@@ -30,14 +30,18 @@ class LevelItems(ItemsView):
         kwargs['reverse'] = False
         kwargs['include_value'] = True
         for k, v in self._db.RangeIter(**kwargs):
-            yield k, self._db.decode(v)
+            yield self.key_transform(k), self._db.decode(v)
 
-    def __reversed__(self, *args, **kwargs):
+    def __reversed__(self):
         kwargs = copy(self._args)
         kwargs['reverse'] = True
         kwargs['include_value'] = True
         for k, v in self._db.RangeIter(**kwargs):
-            yield k, self._db.decode(v)
+            yield self.key_transform(k), self._db.decode(v)
+
+    @staticmethod
+    def key_transform(key):
+        return bytes(key)
 
     def __repr__(self):                                     # pragma: no cover
         return "<LevelItems @%x>" % id(self)
@@ -62,14 +66,18 @@ class LevelKeys(KeysView):
         kwargs['reverse'] = False
         kwargs['include_value'] = False
         for k in self._db.RangeIter(**kwargs):
-            yield bytes(k)
+            yield self.key_transform(k)
 
-    def __reversed__(self, *args, **kwargs):
+    def __reversed__(self):
         kwargs = copy(self._args)
         kwargs['reverse'] = True
         kwargs['include_value'] = False
         for k in self._db.RangeIter(**kwargs):
-            yield bytes(k)
+            yield self.key_transform(k)
+
+    @staticmethod
+    def key_transform(key):
+        return bytes(key)
 
     def __repr__(self):                                     # pragma: no cover
         return "<LevelKeys @%x>" % id(self)
@@ -96,7 +104,7 @@ class LevelValues(ValuesView):
         for k, v in self._db.RangeIter(**kwargs):
             yield self._db.decode(v)
 
-    def __reversed__(self, *args, **kwargs):
+    def __reversed__(self):
         kwargs = copy(self._args)
         kwargs['reverse'] = True
         kwargs['include_value'] = True
