@@ -229,18 +229,31 @@ class LevelReader(LevelAccessor):
                 kwargs['reverse'] = False
                 kwargs['include_value'] = False
 
-                prev = b''
+                prev = key_from
 
-                while prev is not None:
-                    try:
-                        z = next(self.RangeIter(**kwargs))
-                        y = self.strip_prefix(z)
-                        prev = y.split(self.delim)[0]
-                        yield prev
-                        next_key = self.subkey(self.join(prev, b"\xFF"))
+                while True:
+
+                    for fullkey in self.RangeIter(**kwargs):
+                        # remove prefix and suffix to get the true subkey
+                        key = self.strip_prefix(fullkey).split(self.delim)[0]
+
+                        if prev == key:
+                            continue
+
+                        yield key
+
+                        prev = key
+
+                        # build next key from key and end delim
+                        next_key = self.subkey(self.join(key, b"\xFF"))
+
+                        # update kwargs and continue outer loop
                         kwargs['key_from'] = next_key
-                    except StopIteration:
-                        prev = None
+                        break
+
+                    # we did not break out of for-loop so we are done
+                    else:
+                        break
 
             def __reversed__(self_):
                 kwargs = copy(self_._args)
@@ -248,25 +261,27 @@ class LevelReader(LevelAccessor):
                 kwargs['include_value'] = False
                 key = prev = b''
 
-                while prev is not None:
-                    try:
-                        it = self.RangeIter(**kwargs)
+                while True:
+
+                    for fullkey in self.RangeIter(**kwargs):
+                        # remove prefix and suffix to get the true subkey
+                        key = self.strip_prefix(fullkey).split(self.delim)[0]
 
                         # if we get the same key as previous, get next
-                        while key == prev:
-                            last = next(it)
-                            # remove prefix and suffix to get the key
-                            key = self.strip_prefix(last).split(self.delim)[0]
+                        if prev == key:
+                            continue
 
                         # we have the next unique key
-                        # - yield key and update the kwargs for next iterator
                         yield key
+
+                        # update prev and the kwargs for next iterator
                         prev = key
-
                         kwargs['key_to'] = self.key_transform(prev)
+                        break
 
-                    except StopIteration:
-                        prev = None
+                    # we did not break out of for-loop so we are done
+                    else:
+                        break
 
         keys = LevelKeysUnique(self,
                                key_from=key_from,

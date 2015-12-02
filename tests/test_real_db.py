@@ -225,6 +225,7 @@ def test_tostring(db):
 
 unique_subkey_data = [
     ('!A!X', 'a'),
+    (b'!A!\xFF', 'a'),
     ('!B!n!0', 'b'),
     ('!B!n!3', 'c'),
     ('!B!n!1', 'xxx'),
@@ -242,7 +243,7 @@ unique_subkey_data = [
 ])
 @pytest.mark.parametrize('viewkey, expected', [
     ('!B', [b'm', b'n', b'z']),
-    ('!A', [b'X']),
+    ('!A', [b'X', b'\xFF']),
     ('!C', []),
     ('', [b'A', b'B', b'Bc', b'C', b'D']),
 ])
@@ -259,7 +260,7 @@ def test_unique_subkeys(filled_db, viewkey, expected):
 ])
 @pytest.mark.parametrize('viewkey, expected', [
     ('!B', [b'z', b'n', b'm']),
-    ('!A', [b'X']),
+    ('!A', [b'\xFF', b'X']),
     ('!C', []),
     ('', [b'D', b'C', b'Bc', b'B', b'A']),
 ])
