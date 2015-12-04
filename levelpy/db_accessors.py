@@ -328,14 +328,7 @@ class LevelReader(LevelAccessor):
             res_key, res_val = next(self.RangeIter(key_from=start_key))
         except StopIteration:
             return None, None
-        res_key = bytes(res_key)
-        if sys.version_info[:2] >= (3, 5):
-            if not res_key.startswith(start_key):
-                return None, None
-        elif res_key[:len(start_key)] != start_key:
-            return None, None
-        res_val = self.decode(res_val)
-        return res_key, res_val
+        return self._key_matches(start_key, bytes(res_key), res_val)
 
     def find_last_matching(self, key):
         """
@@ -350,14 +343,16 @@ class LevelReader(LevelAccessor):
             res_key, res_val = next(self.RangeIter(key_to=start_key, reverse=True))
         except StopIteration:
             return None, None
-        res_key = bytes(res_key)
-        if sys.version_info[:2] >= (3, 5):
-            if not res_key.startswith(start_key):
+        return self._key_matches(key, bytes(res_key), res_val)
+
+    def _key_matches(self, patt, key, value):
+        try:
+            if not key.startswith(patt):
                 return None, None
-        elif res_key[:len(key)] != key:
-            return None, None
-        res_val = self.decode(res_val)
-        return res_key, res_val
+        except AttributeError:
+            if key[:len(patt)] != patt:
+                return None, None
+        return key, self.decode(value)
 
     def Get(self, key):
         return self._db.Get(key)
