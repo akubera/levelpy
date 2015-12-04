@@ -2,6 +2,8 @@
 # levelpy/db_accessors.py
 #
 
+import sys
+from copy import copy
 from numbers import Number
 from .serializer import Serializer
 from .iterviews import (
@@ -36,8 +38,8 @@ class LevelAccessor:
             self.value_encoding_str = None
 
         # Assume this is a protocol buffer
-        elif hasattr(value_encoding, 'SerializeToString') and \
-             hasattr(value_encoding, 'ParseFromString'):
+        elif (hasattr(value_encoding, 'SerializeToString')
+              and hasattr(value_encoding, 'ParseFromString')):
             def decode_protocol_buffer(bytestr):
                 obj = value_encoding()
                 obj.ParseFromString(bytes(bytestr))
@@ -50,13 +52,17 @@ class LevelAccessor:
             raise TypeError("value_encoding must be a string or"
                             "encoding/decoding function tuple.")
 
-    def key_transform(self, key):  # -> bytes
+    def key_transform(self, *keys):  # -> bytes
         """
         Takes some potential key and returns the bytes that this accessor will
         use to retrieve values from the database. This is done by prefixing the
         key with the accessor's prefix and delimiter.
+
+        If multiple keys are provided, they will be 'joined' automatically
         """
-        return self._key_prefix + self.byteify(key)
+        # return self._key_prefix + self.byteify(key)
+        # return self.join(self._prefix, *keys)
+        return self._key_prefix + self.join(*keys)
 
     def subkey(self, key):
         """
@@ -85,6 +91,25 @@ class LevelAccessor:
     @delim.setter
     def delim(self, value):
         self._delim = self.byteify(value)
+
+    def join(self, *keys):
+        """
+        Key-encodes each argument (i.e. byteifies), and does a join with This
+        accessor's delimiter character
+        """
+        return self._delim.join(map(self.byteify, keys))
+
+    def strip_prefix(self, key):
+        """
+        Returns a key without the prefix of this LevelAccessor.
+        If the argument does not start with the key prefix, it is returned as
+        is (turened into bytes).
+        """
+        key = self.byteify(key)
+        if key.startswith(self._key_prefix):
+            return key[len(self._key_prefix):]
+        else:
+            return key
 
     @staticmethod
     def byteify(value) -> bytes:
@@ -193,6 +218,83 @@ class LevelReader(LevelAccessor):
         kwargs['key_to'] = self.range_stop_key(kwargs.get('key_to', None))
         return LevelKeys(self, **kwargs)
 
+    def unique_subkeys(self, key_from=b'', key_to=b'\xFF', **kwargs):
+        """
+        Returns an iterator which iterates over the keys in the database,
+        ignoring values.
+        """
+
+        key_from = self.key_transform(key_from)
+        key_to = self.key_transform(key_to)
+
+        class LevelKeysUnique(LevelKeys):
+
+            def __iter__(self_):
+                kwargs = copy(self_._args)
+                kwargs['reverse'] = False
+                kwargs['include_value'] = False
+
+                prev = key_from
+
+                while True:
+
+                    for fullkey in self.RangeIter(**kwargs):
+                        # remove prefix and suffix to get the true subkey
+                        key = self.strip_prefix(fullkey).split(self.delim)[0]
+
+                        if prev == key:
+                            continue
+
+                        yield key
+
+                        prev = key
+
+                        # build next key from key and end delim
+                        next_key = self.subkey(self.join(key, b"\xFF"))
+
+                        # update kwargs and continue outer loop
+                        kwargs['key_from'] = next_key
+                        break
+
+                    # we did not break out of for-loop so we are done
+                    else:
+                        break
+
+            def __reversed__(self_):
+                kwargs = copy(self_._args)
+                kwargs['reverse'] = True
+                kwargs['include_value'] = False
+                key = prev = b''
+
+                while True:
+
+                    for fullkey in self.RangeIter(**kwargs):
+                        # remove prefix and suffix to get the true subkey
+                        key = self.strip_prefix(fullkey).split(self.delim)[0]
+
+                        # if we get the same key as previous, get next
+                        if prev == key:
+                            continue
+
+                        # we have the next unique key
+                        yield key
+
+                        # update prev and the kwargs for next iterator
+                        prev = key
+                        kwargs['key_to'] = self.key_transform(prev)
+                        break
+
+                    # we did not break out of for-loop so we are done
+                    else:
+                        break
+
+        keys = LevelKeysUnique(self,
+                               key_from=key_from,
+                               key_to=key_to,
+                               **kwargs)
+
+        return keys
+
     def values(self, **kwargs):
         """
         Returns an iterator which iterates over the values in the database,
@@ -203,11 +305,54 @@ class LevelReader(LevelAccessor):
         return LevelValues(self, **kwargs)
 
     def __contains__(self, key):
+        """
+        Tests whether the key exists in the database.
+
+        :return: bool
+        """
         search_key = self.key_transform(key)
         stop_key = search_key + self._range_ending
         return search_key in self.RangeIter(key_from=search_key,
                                             key_to=stop_key,
                                             include_value=False)
+
+    def find_first_matching(self, key):
+        """
+        Searches database for the first matching key after argument, it returns
+        the found key+value pair.
+
+        If no such key exists, the tuple (None, None) is returned
+        """
+        start_key = self.key_transform(key)
+        try:
+            res_key, res_val = next(self.RangeIter(key_from=start_key))
+        except StopIteration:
+            return None, None
+        return self._key_matches(start_key, bytes(res_key), res_val)
+
+    def find_last_matching(self, key):
+        """
+        Searches database for the last matching key before the provided
+        argument. This returns the found key+value pair.
+
+        If no such key exists, the tuple (None, None) is returned
+        """
+        key = self.key_transform(key)
+        start_key = key + b"\xff"
+        try:
+            res_key, res_val = next(self.RangeIter(key_to=start_key, reverse=True))
+        except StopIteration:
+            return None, None
+        return self._key_matches(key, bytes(res_key), res_val)
+
+    def _key_matches(self, patt, key, value):
+        try:
+            if not key.startswith(patt):
+                return None, None
+        except AttributeError:
+            if key[:len(patt)] != patt:
+                return None, None
+        return key, self.decode(value)
 
     def Get(self, key):
         return self._db.Get(key)

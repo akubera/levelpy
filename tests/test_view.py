@@ -164,3 +164,17 @@ def test_values(view, db, k_d):
         key_from=k_d,
         key_to=k_d + b'~',
     )
+
+@pytest.mark.parametrize("keys, expected", [
+    (["a", "b", "c"], b"a!b!c"),
+])
+def test_join(view, keys, expected):
+    assert view.join(*keys) == expected
+
+
+@pytest.mark.parametrize("key, inkey, expected", [
+    ("abcd", "abcd!123", b"123"),
+    ("abcd", "xabcd!123", b"xabcd!123"),
+])
+def test_strip_prefix(view, inkey, expected):
+    assert view.strip_prefix(inkey) == expected

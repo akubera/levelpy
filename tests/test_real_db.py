@@ -8,7 +8,7 @@ Tests for storage/retreival of a real database.
 import pytest
 from fixtures import leveldir
 from levelpy.leveldb import LevelDB
-
+from itertools import zip_longest
 
 @pytest.fixture(scope='module')
 def backend_class_str():
@@ -34,7 +34,7 @@ def opened_db(backend_class, leveldir):
 
 @pytest.fixture
 def db(backend_class_str, leveldir):
-    return LevelDB(leveldir, backend_class_str)
+    return LevelDB(leveldir, backend_class_str, create_if_missing=True)
 
 
 @pytest.fixture
@@ -217,6 +217,88 @@ def test_values_reversed(filled_db, range_, expected):
     for a, b in zip(reversed(vals), expected):
         assert a == b
 
+
 def test_tostring(db):
     vals = db.values()
     str(vals) == "<LevelValues>"
+
+
+unique_subkey_data = [
+    ('!A!X', 'a'),
+    (b'!A!\xFF', 'a'),
+    ('!B!n!0', 'b'),
+    ('!B!n!3', 'c'),
+    ('!B!n!1', 'xxx'),
+    ('!B!m', 'h'),
+    ('!B!m!4', 'g'),
+    ('!B!z', 'd'),
+    ('!Bc!z', 'bc'),
+    ('!C', 'XX'),
+    ('!D', 'XX'),
+]
+
+
+@pytest.mark.parametrize('data', [
+    unique_subkey_data,
+])
+@pytest.mark.parametrize('viewkey, expected', [
+    ('!B', [b'm', b'n', b'z']),
+    ('!A', [b'X', b'\xFF']),
+    ('!C', []),
+    ('', [b'A', b'B', b'Bc', b'C', b'D']),
+])
+def test_unique_subkeys(filled_db, viewkey, expected):
+    db = filled_db
+    view = db.view(viewkey)
+    ukeys = view.unique_subkeys()
+    for a, b in zip_longest(ukeys, expected):
+        assert a == b
+
+
+@pytest.mark.parametrize('data', [
+    unique_subkey_data,
+])
+@pytest.mark.parametrize('viewkey, expected', [
+    ('!B', [b'z', b'n', b'm']),
+    ('!A', [b'\xFF', b'X']),
+    ('!C', []),
+    ('', [b'D', b'C', b'Bc', b'B', b'A']),
+])
+def test_unique_subkeys_reversed(filled_db, viewkey, expected):
+    db = filled_db
+    view = db.view(viewkey)
+    ukeys = view.unique_subkeys()
+    for a, b in zip_longest(reversed(ukeys), expected):
+        assert a == b
+
+
+@pytest.mark.parametrize('data', [
+    unique_subkey_data,
+])
+@pytest.mark.parametrize('viewkey, find_this, expected', [
+    ('!Z', 'a', (None, None)),
+    ('!B', 'n', (b'!B!n!0', 'b')),
+    ('!A', 'n', (None, None)),
+    ('!A', '', (b'!A!X', 'a')),
+])
+def test_find_first_matching(filled_db, viewkey, find_this, expected):
+    db = filled_db
+    view = db.view(viewkey)
+    found = view.find_first_matching(find_this)
+    assert found == expected
+
+
+@pytest.mark.parametrize('data', [
+    unique_subkey_data,
+])
+@pytest.mark.parametrize('viewkey, find_this, expected', [
+    ('!Z', 'a', (None, None)),
+    ('!B', 'n', (b'!B!n!3', 'c')),
+    ('!A', 'n', (None, None)),
+    ('!A', '', (b'!A!\xFF', 'a')),
+])
+def test_find_last_matching(filled_db, viewkey, find_this, expected):
+    db = filled_db
+    view = db.view(viewkey)
+    found = view.find_last_matching(find_this)
+    assert found == expected
