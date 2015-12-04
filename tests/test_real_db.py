@@ -270,3 +270,35 @@ def test_unique_subkeys_reversed(filled_db, viewkey, expected):
     ukeys = view.unique_subkeys()
     for a, b in zip_longest(reversed(ukeys), expected):
         assert a == b
+
+
+@pytest.mark.parametrize('data', [
+    unique_subkey_data,
+])
+@pytest.mark.parametrize('viewkey, find_this, expected', [
+    ('!Z', 'a', (None, None)),
+    ('!B', 'n', (b'!B!n!0', 'b')),
+    ('!A', 'n', (None, None)),
+    ('!A', '', (b'!A!X', 'a')),
+])
+def test_find_first_matching(filled_db, viewkey, find_this, expected):
+    db = filled_db
+    view = db.view(viewkey)
+    found = view.find_first_matching(find_this)
+    assert found == expected
+
+
+@pytest.mark.parametrize('data', [
+    unique_subkey_data,
+])
+@pytest.mark.parametrize('viewkey, find_this, expected', [
+    ('!Z', 'a', (None, None)),
+    ('!B', 'n', (b'!B!n!3', 'c')),
+    ('!A', 'n', (None, None)),
+    ('!A', '', (b'!A!\xFF', 'a')),
+])
+def test_find_last_matching(filled_db, viewkey, find_this, expected):
+    db = filled_db
+    view = db.view(viewkey)
+    found = view.find_last_matching(find_this)
+    assert found == expected

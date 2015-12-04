@@ -2,6 +2,7 @@
 # levelpy/db_accessors.py
 #
 
+import sys
 from copy import copy
 from numbers import Number
 from .serializer import Serializer
@@ -51,13 +52,17 @@ class LevelAccessor:
             raise TypeError("value_encoding must be a string or"
                             "encoding/decoding function tuple.")
 
-    def key_transform(self, key):  # -> bytes
+    def key_transform(self, *keys):  # -> bytes
         """
         Takes some potential key and returns the bytes that this accessor will
         use to retrieve values from the database. This is done by prefixing the
         key with the accessor's prefix and delimiter.
+
+        If multiple keys are provided, they will be 'joined' automatically
         """
-        return self._key_prefix + self.byteify(key)
+        # return self._key_prefix + self.byteify(key)
+        # return self.join(self._prefix, *keys)
+        return self._key_prefix + self.join(*keys)
 
     def subkey(self, key):
         """
@@ -300,11 +305,59 @@ class LevelReader(LevelAccessor):
         return LevelValues(self, **kwargs)
 
     def __contains__(self, key):
+        """
+        Tests whether the key exists in the database.
+
+        :return: bool
+        """
         search_key = self.key_transform(key)
         stop_key = search_key + self._range_ending
         return search_key in self.RangeIter(key_from=search_key,
                                             key_to=stop_key,
                                             include_value=False)
+
+    def find_first_matching(self, key):
+        """
+        Searches database for the first matching key after argument, it returns
+        the found key+value pair.
+
+        If no such key exists, the tuple (None, None) is returned
+        """
+        start_key = self.key_transform(key)
+        try:
+            res_key, res_val = next(self.RangeIter(key_from=start_key))
+        except StopIteration:
+            return None, None
+        res_key = bytes(res_key)
+        if sys.version_info[:2] >= (3, 5):
+            if not res_key.startswith(start_key):
+                return None, None
+        elif res_key[:len(start_key)] != start_key:
+            return None, None
+        res_val = self.decode(res_val)
+        return res_key, res_val
+
+    def find_last_matching(self, key):
+        """
+        Searches database for the last matching key before the provided
+        argument. This returns the found key+value pair.
+
+        If no such key exists, the tuple (None, None) is returned
+        """
+        key = self.key_transform(key)
+        start_key = key + b"\xff"
+        try:
+            res_key, res_val = next(self.RangeIter(key_to=start_key, reverse=True))
+        except StopIteration:
+            return None, None
+        res_key = bytes(res_key)
+        if sys.version_info[:2] >= (3, 5):
+            if not res_key.startswith(start_key):
+                return None, None
+        elif res_key[:len(key)] != key:
+            return None, None
+        res_val = self.decode(res_val)
+        return res_key, res_val
 
     def Get(self, key):
         return self._db.Get(key)
