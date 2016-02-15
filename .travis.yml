@@ -5,7 +5,7 @@ python:
 
 install:
   - pip install leveldb
-  - pip install coveralls
+  - pip install pytest-cov coveralls
 
 script:
   coverage run --source=levelpy setup.py pytest --addopts --cov=levelpy
