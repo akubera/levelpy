@@ -21,6 +21,10 @@ TESTS_REQUIRE = [
     'pytest',
 ]
 
+SETUP_REQUIRES = [
+    'pytest-runner',
+]
+
 PACKAGES = find_packages(
     exclude=["*.tests", "*.tests.*", "tests.*", "tests"]
 )
@@ -51,5 +55,6 @@ setup(
     install_requires=REQUIRES,
     extras_require=OPTIONAL_REQUIRES,
     tests_require=TESTS_REQUIRE,
+    setup_requires=SETUP_REQUIRES,
     platforms='all',
 )
