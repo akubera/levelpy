@@ -2,6 +2,15 @@
 LevelPy
 =======
 
+.. image:: https://travis-ci.org/akubera/levelpy.svg?branch=master
+   :target: https://travis-ci.org/akubera/levelpy
+   :alt: Testing Report
+
+.. image:: https://coveralls.io/repos/github/akubera/levelpy/badge.svg?branch=feature_travis
+   :target: https://coveralls.io/github/akubera/levelpy?branch=feature_travis
+   :alt: Coverage Report
+
+
 A pythonic interface to the `LevelDB`_ database.
 
 About
