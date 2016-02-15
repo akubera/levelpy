@@ -4,4 +4,4 @@ python:
   - "3.5"
 
 install: "pip install leveldb"
-script: py.test tests/
+script: python setup.py pytest
