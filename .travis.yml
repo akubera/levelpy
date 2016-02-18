@@ -5,10 +5,17 @@ python:
 
 install:
   - pip install leveldb
-  - pip install pytest-cov coveralls
+  - pip install pytest pytest-cov
+  - pip install python-coveralls coveralls
 
+#
+# script:
+#   coverage run --source=levelpy setup.py pytest --addopts '--cov=levelpy.view --cov-report=term-missing'
+#
+# after_success:
+#   coveralls
 script:
-  coverage run --source=levelpy setup.py pytest --addopts '--cov=levelpy.view --cov-report=term-missing'
+    - py.test tests --cov=levelpy --cov-report=term-missing
 
 after_success:
-  coveralls
+    - coveralls
