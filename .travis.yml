@@ -8,14 +8,13 @@ install:
   - pip install pytest pytest-cov
   - pip install python-coveralls
 
-#
-# script:
-#   coverage run --source=levelpy setup.py pytest --addopts '--cov=levelpy.view --cov-report=term-missing'
+script:
+  - python setup.py pytest --addopts ' --cov=levelpy --cov-report=term-missing -v'
 #
 # after_success:
 #   coveralls
-script:
-    - py.test tests --cov=levelpy --cov-report=term-missing -v
+# script:
+#     - py.test tests --cov=levelpy --cov-report=term-missing -v
 
 after_success:
     - coveralls
