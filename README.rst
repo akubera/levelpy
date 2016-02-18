@@ -1,4 +1,3 @@
-
 LevelPy
 =======
 
@@ -49,15 +48,25 @@ examples:
   from levelpy import LevelDB
 
   db = LevelDB('/path/to/db')  # use the default leveldb.LevelDB backend
-  --------------------
+
+  ##############################
+
   db = LevelDB('/path/to/db', 'plyvel.DB', error_if_exists=True)  # use the Plyvel backend w/ keyword
-  --------------------
+
+  ##############################
+
   db = LevelDB('/path/to/db', 'my.custom.leveldb.DATABASE')  # use your own backend
-  --------------------
+
+  ##############################
+
   cls = leveldb.LevelDB
   db = LevelDB('/path/to/db', cls)  # use a specific class to create an instance
-  --------------------
+
+  ##############################
+
+  cnx = setup.your.own_db_instance("however", "you", "wish")
   db = LevelDB(cnx)  # use an already created leveldb connection (backend string is ignored)
+
 
 levelpy.LevelDB will import the package and store an instance of this class,
 forwarding any keyword arguments to the constructor.
