@@ -22,7 +22,7 @@ env:
 
 install:
   - pip install -q pytest-cov python-coveralls msgpack-python
-  - pip install ${LEVELDB_BACKEND}
+  - CFLAGS="-I/usr/include -O2" pip install ${LEVELDB_BACKEND}
 
 script:
   - python setup.py pytest --addopts '--cov=levelpy --cov-report=term-missing -v'
