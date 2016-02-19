@@ -13,7 +13,7 @@ env:
   - LEVELDB_BACKEND=leveldb
 
 install:
-  - pip install -q pytest-cov python-coveralls
+  - pip install -q pytest-cov python-coveralls msgpack-python
   - pip install -q $LEVELDB_BACKEND
 
 script:
