@@ -5,14 +5,24 @@
 """
 Tests for storage/retreival of a real database.
 """
+
 import pytest
 from fixtures import leveldir
 from levelpy.leveldb import LevelDB
 from itertools import zip_longest
 
-@pytest.fixture(scope='module')
-def backend_class_str():
-    return "leveldb.LevelDB"
+
+@pytest.fixture(
+    params=[
+        "leveldb.LevelDB",
+    #    "plyvel.DB",
+    ],
+    scope='module',
+)
+def backend_class_str(request):
+    pkg_name = request.param.split(".")[0]
+    pytest.importorskip(pkg_name)
+    return request.param
 
 
 @pytest.fixture(scope='module')
@@ -83,6 +93,7 @@ def test_contains(db, key, data, expected):
         db[k] = v
     assert (key in db) == expected
 
+
 @pytest.mark.parametrize('data', (
   (
    ('a1', 'VALU'),
@@ -139,6 +150,7 @@ def test_item_iteration_slice(db, slice_, data, expected):
 
     assert len(l) is len(expected)
     assert l == expected
+
 
 @pytest.mark.parametrize('data, range_, expected', (
     ([('A0', 'a'), ('A1', 'b'), ('C', 'c')],
