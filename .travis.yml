@@ -4,6 +4,11 @@
 
 language: python
 
+addons:
+  apt:
+    packages:
+      - libleveldb-dev
+
 python:
   - "3.4"
   - "3.5"
