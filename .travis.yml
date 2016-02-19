@@ -14,7 +14,7 @@ env:
 
 install:
   - pip install -q pytest-cov python-coveralls msgpack-python
-  - pip install -q $LEVELDB_BACKEND
+  - pip install ${LEVELDB_BACKEND}
 
 script:
   - python setup.py pytest --addopts '--cov=levelpy --cov-report=term-missing -v'
