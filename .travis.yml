@@ -20,7 +20,7 @@ python:
   - "3.5"
 
 env:
-  # - LEVELDB_BACKEND=plyvel
+  - LEVELDB_BACKEND=plyvel
   - LEVELDB_BACKEND=leveldb
 
 install:
