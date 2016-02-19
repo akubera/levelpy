@@ -2,6 +2,9 @@
 # Travis CI configuration
 #
 
+sudo: required
+dist: trusty
+
 language: python
 
 addons:
