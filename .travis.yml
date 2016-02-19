@@ -20,15 +20,15 @@ python:
   - "3.5"
 
 env:
-  - LEVELDB_BACKEND=plyvel
+  # - LEVELDB_BACKEND=plyvel
   - LEVELDB_BACKEND=leveldb
 
 install:
   - pip install -q pytest-cov python-coveralls msgpack-python
-  - CFLAGS="-I/usr/include -O2" pip install ${LEVELDB_BACKEND}
+  - pip install ${LEVELDB_BACKEND}
 
 script:
   - python setup.py pytest --addopts '--cov=levelpy --cov-report=term-missing -v'
 
 after_success:
-    - coveralls
+  - coveralls
