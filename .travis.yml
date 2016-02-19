@@ -1,20 +1,23 @@
+#
+# Travis CI configuration
+#
+
 language: python
+
 python:
   - "3.4"
   - "3.5"
 
+env:
+  - LEVELDB_BACKEND=plyvel
+  - LEVELDB_BACKEND=leveldb
+
 install:
-  - pip install leveldb
-  - pip install pytest pytest-cov
-  - pip install python-coveralls
+  - pip install -q pytest-cov python-coveralls
+  - pip install -q $LEVELDB_BACKEND
 
 script:
-  - python setup.py pytest --addopts ' --cov=levelpy --cov-report=term-missing -v'
-#
-# after_success:
-#   coveralls
-# script:
-#     - py.test tests --cov=levelpy --cov-report=term-missing -v
+  - python setup.py pytest --addopts '--cov=levelpy --cov-report=term-missing -v'
 
 after_success:
     - coveralls
