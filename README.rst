@@ -2,13 +2,20 @@
 LevelPy
 =======
 
-.. image:: https://travis-ci.org/akubera/levelpy.svg?branch=master
-   :target: https://travis-ci.org/akubera/levelpy
-   :alt: Testing Report
+=======================   ========================================================
+                master     |travis-master| |coveralls-master|
+                   dev     |travis-dev|    |coveralls-dev|
+        feature_travis     |travis-trav|   |coveralls-trav|
+=======================   ========================================================
 
-.. image:: https://coveralls.io/repos/github/akubera/levelpy/badge.svg?branch=feature_travis
-   :target: https://coveralls.io/github/akubera/levelpy?branch=feature_travis
-   :alt: Coverage Report
+
+master
+   |travis-master| |coveralls-master|
+dev
+   |travis-dev| |coveralls-dev|
+feature_travis
+   |travis-trav| |coveralls-trav|
+
 
 
 A pythonic interface to the `LevelDB`_ database.
@@ -178,3 +185,25 @@ dictionaries.
 
 .. _LevelDB: http://leveldb.org/
 .. _LevelDB API: http://leveldb.googlecode.com/svn/trunk/doc/index.html
+
+
+..    |travis-master| image:: https://travis-ci.org/akubera/levelpy.svg?branch=master
+                        :target: https://travis-ci.org/akubera/levelpy?branch=master
+                        :alt: Testing Report (Master Branch)
+.. |coveralls-master| image:: https://coveralls.io/repos/github/akubera/levelpy/badge.svg?branch=master
+                        :target: https://coveralls.io/github/akubera/levelpy?branch=master
+                        :alt: Coverage Report
+
+..    |travis-dev| image:: https://travis-ci.org/akubera/levelpy.svg?branch=dev
+                     :target: https://travis-ci.org/akubera/levelpy?branch=dev
+                     :alt: Testing Report (Master Branch)
+.. |coveralls-dev| image:: https://coveralls.io/repos/github/akubera/levelpy/badge.svg?branch=dev
+                     :target: https://coveralls.io/github/akubera/levelpy?branch=dev
+                     :alt: Coverage Report
+
+.. |travis-trav| image:: https://travis-ci.org/akubera/levelpy.svg?branch=feature_travis
+            :target: https://travis-ci.org/akubera/levelpy?branch=feature_travis
+            :alt: Testing Report (Master Branch)
+.. |coveralls-trav| image:: https://coveralls.io/repos/github/akubera/levelpy/badge.svg?branch=feature_travis
+            :target: https://coveralls.io/github/akubera/levelpy?branch=feature_travis
+            :alt: Coverage Report
