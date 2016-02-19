@@ -1,0 +1,34 @@
+#
+# Travis CI configuration
+#
+
+sudo: required
+dist: trusty
+
+language: python
+
+addons:
+  apt:
+    packages:
+      - libleveldb1
+      - libleveldb-dev
+      - libsnappy1
+      - libsnappy-dev
+
+python:
+  - "3.4"
+  - "3.5"
+
+env:
+  - LEVELDB_BACKEND=plyvel
+  - LEVELDB_BACKEND=leveldb
+
+install:
+  - pip install -q pytest-cov python-coveralls msgpack-python
+  - pip install ${LEVELDB_BACKEND}
+
+script:
+  - python setup.py pytest --addopts '--cov=levelpy --cov-report=term-missing -v'
+
+after_success:
+  - coveralls
