@@ -43,7 +43,6 @@ class LevelDB(LevelReader, LevelWriter):
                  db,
                  leveldb_cls='leveldb.LevelDB',
                  value_encoding='utf-8',
-                 create_if_missing=False,
                  **db_kwargs):
 
         # if db is a string - create the db object from the leveldb_cls param
@@ -70,9 +69,7 @@ class LevelDB(LevelReader, LevelWriter):
                 self._leveldb_cls = leveldb_cls
 
             # create the backend
-            self._db = self._leveldb_cls(self.path,
-                                         create_if_missing=create_if_missing,
-                                         **db_kwargs)
+            self._db = self._leveldb_cls(self.path, **db_kwargs)
 
             # The backend package was not determined.
             # Provided 'class' was just a factory function - inspect
@@ -135,7 +132,10 @@ class LevelDB(LevelReader, LevelWriter):
         """
         prefix = self.key_transform(key)
         enc = self._get_encoding(value_encoding)
-        return View(self._db,
+
+        db = self._db if isinstance(self._db, (LevelDB, LevelReader)) else self
+
+        return View(db,
                     prefix,
                     delim=delim,
                     value_encoding=enc,

@@ -57,13 +57,19 @@ def plyvel_database(wrapper, db):
     def not_implemented(*args):  # pragma: no cover
         raise NotImplemented()
 
+    def RangeIter(*args, **kwargs):
+        kwargs['start'] = kwargs.pop('key_from', None)
+        kwargs['stop'] = kwargs.pop('key_to', None)
+        kwargs['include_stop'] = kwargs.pop('include_stop', True)
+        return wrapper._db.iterator(*args, **kwargs)
+
     wrapper.DestroyDB = plyvel.destroy_db
 
     wrapper.Get = db.get
     wrapper.Put = db.put
     wrapper.Delete = db.delete
     wrapper.Write = None
-    wrapper.RangeIter = not_implemented
+    wrapper.RangeIter = RangeIter
     wrapper.GetStats = not_implemented
     wrapper.CreateSnapshot = plyvel.DB.snapshot
 

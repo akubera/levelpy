@@ -15,7 +15,7 @@ from itertools import zip_longest
 @pytest.fixture(
     params=[
         "leveldb.LevelDB",
-    #    "plyvel.DB",
+        "plyvel.DB",
     ],
     scope='module',
 )
@@ -23,6 +23,19 @@ def backend_class_str(request):
     pkg_name = request.param.split(".")[0]
     pytest.importorskip(pkg_name)
     return request.param
+
+
+@pytest.fixture
+def backend_class_params(backend_class_str):
+    return {
+        'leveldb': dict(
+            create_if_missing=True,
+        ),
+        'plyvel': dict(
+            error_if_exists=True,
+            create_if_missing=True,
+        ),
+    }[backend_class_str.split(".")[0]]
 
 
 @pytest.fixture(scope='module')
@@ -43,8 +56,8 @@ def opened_db(backend_class, leveldir):
 
 
 @pytest.fixture
-def db(backend_class_str, leveldir):
-    return LevelDB(leveldir, backend_class_str, create_if_missing=True)
+def db(backend_class_str, backend_class_params, leveldir):
+    return LevelDB(leveldir, backend_class_str, **backend_class_params)
 
 
 @pytest.fixture
@@ -65,13 +78,9 @@ def filled_db(db, data):
     return db
 
 
-def test_backend_class(backend_class, leveldir):
-    db = backend_class(leveldir)
-    assert isinstance(db, backend_class)
-
-
-def test_db_type(db):
+def test_db_fixture(db, backend_class):
     assert isinstance(db, LevelDB)
+    assert isinstance(db._db, backend_class)
 
 
 @pytest.mark.parametrize('k, v, expected', (
@@ -82,6 +91,7 @@ def test_item_access(db, k, v, expected):
     db[k] = v
     assert k in db
     assert db[k] == expected
+
 
 @pytest.mark.parametrize('key, data, expected', (
   ('needle', {'a': 'b', 'z': 'y'}, False),
