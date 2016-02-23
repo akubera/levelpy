@@ -2,11 +2,13 @@ LevelPy
 =======
 
 master
-   |travis-master| |coveralls-master|
+   |travis-master| |coveralls-master| |version-master|
 dev
    |travis-dev| |coveralls-dev|
 
+
 A pythonic interface to the `LevelDB`_ database.
+
 
 About
 -----
@@ -166,6 +168,13 @@ It is recommended to call Serializer.update() after modifying the transform_dict
 and decode dictionaries.
 
 
+License
+-------
+
+Levelpy is released under the `MIT <https://opensource.org/licenses/MIT>`_ license.
+
+
+
 .. _LevelDB: http://leveldb.org/
 .. _LevelDB API: http://leveldb.googlecode.com/svn/trunk/doc/index.html
 
@@ -173,13 +182,20 @@ and decode dictionaries.
 .. |travis-master| image:: https://travis-ci.org/akubera/levelpy.svg?branch=master
                         :target: https://travis-ci.org/akubera/levelpy?branch=master
                         :alt: Testing Report (Master Branch)
+
 .. |coveralls-master| image:: https://coveralls.io/repos/github/akubera/levelpy/badge.svg?branch=master
-                        :target: https://coveralls.io/github/akubera/levelpy?branch=master
-                        :alt: Coverage Report
+                           :target: https://coveralls.io/github/akubera/levelpy?branch=master
+                           :alt: Coverage Report
+
+.. |version-master| image:: https://img.shields.io/pypi/v/levelpy.svg
+                         :target: https://pypi.python.org/pypi/levelpy/
+                         :alt: Latest PyPI version
+
 
 .. |travis-dev| image:: https://travis-ci.org/akubera/levelpy.svg?branch=dev
-                        :target: https://travis-ci.org/akubera/levelpy?branch=dev
-                        :alt: Testing Report (Master Branch)
+                     :target: https://travis-ci.org/akubera/levelpy?branch=dev
+                     :alt: Testing Report (Master Branch)
+
 .. |coveralls-dev| image:: https://coveralls.io/repos/github/akubera/levelpy/badge.svg?branch=dev
                         :target: https://coveralls.io/github/akubera/levelpy?branch=dev
                         :alt: Coverage Report
