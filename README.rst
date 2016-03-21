@@ -17,7 +17,7 @@ LevelPy is a project that does not directly access a LevelDB instance, but inten
 implementations, providing a common, simple, pythonic interface to the lower level database.
 
 **LevelPy alone does *NOT* provide access to a database, nor does it declare one as a dependency. It is up to YOU to
-**choose and install such a package.**
+choose and install such a package.**
 
 In addition to the pythonic interface, LevelPy database objects adhere to the `LevelDB API`_, which uses uppercase
 methods such as 'Get'.
