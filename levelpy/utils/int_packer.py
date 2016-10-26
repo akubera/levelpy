@@ -2,8 +2,9 @@
 # levelpy/utils/int_packer.py
 #
 """
-A module containing methods for storing numbers in leveldb (i.e. as text) in a
-manner that will preserve numberical order (so 2 appears before 10)
+A module containing methods for storing numbers in leveldb (i.e. as
+text) in a manner that will preserve numberical order (so 2 appears
+before 10)
 """
 
 import math
@@ -13,12 +14,11 @@ def packinteger(n, ret_type=str):
     """
     A lexicographic integer packing method
 
-    :param n: The number to stringify
-    :type n: int
-
-    :param ret_type: The type of object to be returned after packing. If list
-        or typle, it will that container of numbers.
-    :type ret_type: type
+    Parameters:
+        n (int): The number to stringify
+        ret_type (type): The type of object to be returned after
+            packing. If list or typle, it will be that container of
+            integers.
     """
     n = int(n)
     M = 251
@@ -60,8 +60,11 @@ def unpackinteger(s):
     """
     The lexicographic integer unpacking
 
-    :param s: The encoding bytes/string to decode to an integer
-    :type s: str/bytes
+    Parameters:
+        s (str or bytes): The encoded bytes/string to decode to an
+            integer.
+    Returns:
+        int: The decoded integer.
     """
     if isinstance(s, (str, bytes)):
         b = [int(s[i:i + 2], 16) for i in range(0, len(s), 2)]

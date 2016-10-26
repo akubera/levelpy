@@ -2,23 +2,23 @@
 # levelpy/sublevel.py
 #
 
+from .view import View
 from .db_accessors import (
     LevelAccessor,
     LevelReader,
     LevelWriter,
 )
-from .view import View
 
 
 class Sublevel(LevelReader, LevelWriter):
     """
-    A Sublevel can be thought of as a table or collection in a leveldb
-    databaase. They are a group of keys which all start with the same prefix,
+    A Sublevel can be thought of as a table or collection in a
+    leveldb databaase.
+    They are a group of keys which all start with the same prefix,
     allowing for an organized collection of similar entries.
 
-    The class is implemented as a subclass of the database, exposing the same
-    interface for getting, setting, and iterating values.
-
+    The class is implemented as a subclass of the database, exposing
+    the same interface for getting, setting, and iterating values.
     """
 
     def __init__(self, db, prefix, delim='!', value_encoding='utf8'):
@@ -27,7 +27,8 @@ class Sublevel(LevelReader, LevelWriter):
 
     def __copy__(self):
         """
-        Simple copy of sublevel - same db, prefix, delimeter, and encoding
+        Simple copy of sublevel - same db, prefix, delimeter, and
+        encoding.
         """
         enc = self._get_encoding(None)
         return Sublevel(self._db, self.prefix, self.delim, enc)

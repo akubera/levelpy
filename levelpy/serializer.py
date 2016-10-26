@@ -51,6 +51,9 @@ class MsgPackSerializer:
 
 
 class Serializer:
+    """
+    Class with dict mapping type names to encode/decode pairs.
+    """
 
     transform_dict = {
         'json': (json_encode, json_decode),

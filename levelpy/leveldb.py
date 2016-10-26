@@ -12,26 +12,8 @@ class LevelDB(LevelReader, LevelWriter):
     """
     LevelDB interface.
 
-    This is the wrapper class around a 'real' implementation of LevelDB.
-
-    :param db: Path to database or a pre-created database object
-    :type db: str, LevelDB instance
-
-    :param leveldb_cls: Full name of the class which will be the database
-        backend. This uses python's __import__ method, so there is no need to
-        import and create the.
-    :type leveldb_cls: str
-
-    :param value_encoding: The default serialization for the database. See the
-        Serializer class for more information on value_encoding.
-    :type value_encoding: str
-
-    :param create_if_missing: Argument passed to the database class which
-        creates a new database in the filesystem if none exists
-    :type create_if_missing: bool
-
-    :param db_kwargs: keyword arguments passed directly to the database class
-        specified
+    This is the wrapper class around a 'real' implementation of
+    LevelDB.
     """
 
     _db = None
@@ -44,7 +26,41 @@ class LevelDB(LevelReader, LevelWriter):
                  leveldb_cls='leveldb.LevelDB',
                  value_encoding='utf-8',
                  **db_kwargs):
+        """
+        'Open' a leveldb directory.
 
+        If db parameter is a string, this constructor will interpret
+        it as a path to a leveldb directory.
+
+        The backend class managing the database can be set with the
+        leveldb_cls parameter, which is either a string (so may be
+        switched via a configuration option) or a class object.
+
+        All keyword arguments are forwarded to the constructor of the
+        backend database class.
+
+        To ensure a common interface to the backend library, the
+        database object is sent to the `NormalizeBackend` function,
+        which will add any missing methods to the object (if it
+        recognizes the class).
+
+        Parameters:
+            db (str or LevelDB instance): Path to database or a
+                pre-created database object.
+            leveldb_cls (str): Full name of the class which will be the
+                database backend. This uses python's __import__ function,
+                so there is no need to manually import the package
+                yourself.
+            value_encoding (str): The default serialization for the
+                database. See the Serializer class for more information
+                on value_encoding.
+            create_if_missing (bool): Argument passed to the database
+                class which creates a new database in the filesystem if
+                none exists.
+
+            **db_kwargs: keyword arguments passed directly to the database
+                class specified.
+        """
         # if db is a string - create the db object from the leveldb_cls param
         if isinstance(db, str):
             self.path = db
@@ -90,7 +106,8 @@ class LevelDB(LevelReader, LevelWriter):
 
     def __copy__(self):
         """
-        Shallow copy of database - reusing the current instance connection
+        Shallow copy of database - reusing the backend 'connection'
+        object.
         """
         return type(self)(self._db)
 

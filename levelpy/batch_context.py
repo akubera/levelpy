@@ -13,9 +13,9 @@ class BatchContext:
     """
     A python wrapper around LevelDB's WriteBatch functionality.
 
-    Using python's with statement, you can guarantee that the put and delete
-    operations applied to the BatchContext will be executed together, or if
-    an error occurs, not at all.
+    Using python's with statement, you can guarantee that the put and
+    delete operations applied to the BatchContext will be executed
+    together, or if an error occurs, not at all.
     """
 
     def __init__(self, db, sync=False):
@@ -40,8 +40,8 @@ class BatchContext:
 
     class BatchDB(LevelWriter, LevelReader):
         """
-        Intermediate database class overloading LevelWriter's Put and Delete
-        methods with a LevelDB batch context
+        Intermediate database class overloading LevelWriter's Put and
+        Delete methods with a LevelDB batch context.
         """
 
         def __init__(self, db, ctx):

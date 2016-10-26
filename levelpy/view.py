@@ -10,8 +10,8 @@ from .db_accessors import LevelReader
 
 class View(LevelReader):
     """
-    This is an immutable object providing read-only access to the database
-    (or a sublevel)
+    This is an immutable object providing read-only access to the
+    database (or a sublevel)
     """
 
     def __init__(self, db, prefix='', delim='!', value_encoding='utf-8'):
@@ -20,14 +20,15 @@ class View(LevelReader):
 
     def __copy__(self):
         """
-        Simple copy of view - same db, prefix, delimeter, and encoding
+        Simple copy of view - same db, prefix, delimeter, and
+        encoding as original.
         """
         enc = self._get_encoding(None)
         return View(self._db, self.prefix, self.delim, enc)
 
     def view(self, key, delim=None, value_encoding=None):
         """
-        Return a subview of this view
+        Return a subview of this view.
         """
         prefix = self.key_transform(key)
         delim = self.delim if (delim is None) else delim

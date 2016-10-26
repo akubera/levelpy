@@ -2,7 +2,6 @@
 # levelpy/db_accessors.py
 #
 
-import sys
 from copy import copy
 from numbers import Number
 from .serializer import Serializer
@@ -15,8 +14,9 @@ from .iterviews import (
 
 class LevelAccessor:
     """
-    A simple class with a method for transforming strings or bytes into keys,
-    and a _key_prefix member which will be prepended to the outgoing key bytes.
+    A simple class with a method for transforming strings or bytes
+    into keys, and a _key_prefix member which will be prepended to
+    the outgoing key bytes.
     """
 
     _prefix = b''
@@ -54,11 +54,13 @@ class LevelAccessor:
 
     def key_transform(self, *keys):  # -> bytes
         """
-        Takes some potential key and returns the bytes that this accessor will
-        use to retrieve values from the database. This is done by prefixing the
-        key with the accessor's prefix and delimiter.
+        Takes some potential key and returns the bytes that this
+        accessor will use to retrieve values from the database.
+        This is done by prefixing the key with the accessor's prefix
+        and delimiter.
 
-        If multiple keys are provided, they will be 'joined' automatically
+        If multiple keys are provided, they will be 'joined'
+        automatically.
         """
         # return self._key_prefix + self.byteify(key)
         # return self.join(self._prefix, *keys)
@@ -66,7 +68,8 @@ class LevelAccessor:
 
     def subkey(self, key):
         """
-        Equivalent to key_transform, but returns None if parameter is None
+        Equivalent to key_transform, but returns None if parameter
+        is None.
         """
         if key is None:
             return None
@@ -94,16 +97,16 @@ class LevelAccessor:
 
     def join(self, *keys):
         """
-        Key-encodes each argument (i.e. byteifies), and does a join with This
-        accessor's delimiter character
+        Key-encodes each argument (i.e. byteifies), and does a join
+        with this accessor's delimiter character.
         """
         return self._delim.join(map(self.byteify, keys))
 
     def strip_prefix(self, key):
         """
         Returns a key without the prefix of this LevelAccessor.
-        If the argument does not start with the key prefix, it is returned as
-        is (turened into bytes).
+        If the argument does not start with the key prefix, it is
+        returned as is (turened into bytes).
         """
         key = self.byteify(key)
         if key.startswith(self._key_prefix):
@@ -114,8 +117,9 @@ class LevelAccessor:
     @staticmethod
     def byteify(value) -> bytes:
         """
-        Static method to return input as bytes. Currently tries to decode
-        string, or if that doesn't work, calls the bytes constructor
+        Static method to return input as bytes. Currently tries to
+        decode string, or if that doesn't work, calls the bytes
+        constructor.
         """
         try:
             return value.encode()
@@ -143,10 +147,11 @@ class LevelReader(LevelAccessor):
     """
     Class containing methods for reading from an established database.
 
-    This class mimics the dict class by implementing __getitem__ as a handy
-    wrapper around the backend's Get and RangeIter methods, along with 'keys',
-    'values', 'get', and 'items'. These also pass any keyword arguments to the
-    backend server, so no functionality is lost.
+    This class mimics the dict class by implementing __getitem__ as a
+    handy wrapper around the backend's Get and RangeIter methods,
+    along with 'keys', 'values', 'get', and 'items'.
+    These also pass any keyword arguments to the backend server, so no
+    functionality is lost.
     """
 
     _range_ending = b'~'
@@ -176,8 +181,8 @@ class LevelReader(LevelAccessor):
 
     def get(self, key):
         """
-        Normalizes the key, gets bytes from databse, decodes bytes using the
-        value_decode method.
+        Normalizes the key, gets bytes from databse, decodes bytes using
+        the value_decode method.
         """
         key = self.key_transform(key)
         value_bytes = self.Get(key)
@@ -202,8 +207,8 @@ class LevelReader(LevelAccessor):
 
     def items(self, **kwargs):
         """
-        Returns an iterator which iterates over the keys, value pairs in the
-        database.
+        Returns an iterator which iterates over the keys, value pairs
+        in the database.
         """
         kwargs['key_from'] = self.range_start_key(kwargs.get('key_from', None))
         kwargs['key_to'] = self.range_stop_key(kwargs.get('key_to', None))
@@ -297,11 +302,12 @@ class LevelReader(LevelAccessor):
 
     def values(self, **kwargs):
         """
-        Returns an iterator which iterates over the values in the database,
-        ignoring keys.
+        Returns an iterator which iterates over the values in the
+        database, ignoring keys.
         """
-        kwargs['key_from'] = self.range_start_key(kwargs.get('key_from', None))
-        kwargs['key_to'] = self.range_stop_key(kwargs.get('key_to', None))
+        start, stop = kwargs.get('key_from', None), kwargs.get('key_to', None)
+        kwargs['key_from'] = self.range_start_key(start)
+        kwargs['key_to'] = self.range_stop_key(stop)
         return LevelValues(self, **kwargs)
 
     def __contains__(self, key):
@@ -318,8 +324,8 @@ class LevelReader(LevelAccessor):
 
     def find_first_matching(self, key):
         """
-        Searches database for the first matching key after argument, it returns
-        the found key+value pair.
+        Searches database for the first matching key after argument,
+        it returns the found key+value pair.
 
         If no such key exists, the tuple (None, None) is returned
         """
@@ -340,7 +346,8 @@ class LevelReader(LevelAccessor):
         key = self.key_transform(key)
         start_key = key + b"\xff"
         try:
-            res_key, res_val = next(self.RangeIter(key_to=start_key, reverse=True))
+            res_key, res_val = next(self.RangeIter(key_to=start_key,
+                                                   reverse=True))
         except StopIteration:
             return None, None
         return self._key_matches(key, bytes(res_key), res_val)
@@ -363,8 +370,8 @@ class LevelReader(LevelAccessor):
 
 class LevelWriter(LevelAccessor):
     """
-    Class containing standard methods for writing and deleting items from a
-    database.
+    Class containing standard methods for writing and deleting items
+    from a database.
     """
 
     def value_encode(self, obj):
@@ -372,7 +379,8 @@ class LevelWriter(LevelAccessor):
 
     def put(self, key, value):
         """
-        Normalizes the key, encodes the value, and stores in the database.
+        Normalizes the key, encodes the value, and stores in the
+        database.
         """
         key = self.key_transform(key)
         value = self.value_encode(value)
